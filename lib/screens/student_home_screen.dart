@@ -41,15 +41,17 @@ class _StudentHomeScreenState extends State<StudentHomeScreen> {
   // --- MODIFIKASI FUNGSI INI ---
   Future<UserModel?> _fetchStudentData() async {
     String? studentId = _authService.getCurrentUser()?.uid;
-    UserModel? studentData = await _authService.getUserData(studentId);
-    // Simpan kelas di state saat data didapat
-    if (mounted && studentData != null) {
-      setState(() {
-        _userKelas = studentData.kelas;
-      });
+    if (studentId != null) {
+      UserModel? studentData = await _authService.getUserData(studentId);
+      // Simpan kelas di state saat data didapat
+      if (mounted && studentData != null) {
+        setState(() {
+          _userKelas = studentData.kelas;
+        });
+      }
+      return studentData;
     }
-    return studentData;
-      return null;
+    return null;
   }
 
   // --- FUNGSI BARU UNTUK FALLBACK JIKA _fetchStudentData GAGAL ---

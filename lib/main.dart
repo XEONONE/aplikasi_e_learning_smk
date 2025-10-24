@@ -68,14 +68,10 @@ class MyAppState extends State<MyApp> {
     final ColorScheme lightColorScheme = ColorScheme.light(
       primary: Colors.indigo.shade700,
       secondary: Colors.indigoAccent.shade400,
-      surface: Colors.white,
-      `background`: const Color(
-        0xFFF0F2F5,
-      ), // <<-- Biarkan background di sini (meskipun deprecated) agar warna Scaffold benar
+      surface: const Color(0xFFF0F2F5),
       onPrimary: Colors.white,
       onSecondary: Colors.white,
-      onSurface: Colors.black87, // <<-- Ganti onBackground ke onSurface
-      // onBackground: Colors.black87, // <<-- Hapus onBackground
+      onSurface: Colors.black87,
       error: Colors.redAccent.shade700,
       onError: Colors.white,
       brightness: Brightness.light,
@@ -106,8 +102,7 @@ class MyAppState extends State<MyApp> {
           textTheme: lightTextTheme,
           useMaterial3: true,
         ).copyWith(
-          scaffoldBackgroundColor:
-              lightColorScheme.surface, // Tetap gunakan background
+          scaffoldBackgroundColor: lightColorScheme.surface,
           cardColor: lightColorScheme.surface,
           appBarTheme: AppBarTheme(
             backgroundColor: Colors.white,
@@ -239,11 +234,10 @@ class MyAppState extends State<MyApp> {
     final ColorScheme darkColorScheme = const ColorScheme.dark(
       primary: Colors.blueAccent,
       secondary: Colors.cyanAccent,
-      surface: Color(0xFF1E1E1E), // <<-- Biarkan background
+      surface: Color(0xFF1E1E1E),
       onPrimary: Colors.black,
       onSecondary: Colors.black,
-      onSurface: Colors.white, // <<-- Ganti onBackground ke onSurface
-      // onBackground: Colors.white70, // <<-- Hapus onBackground
+      onSurface: Colors.white,
       error: Colors.redAccent,
       onError: Colors.white,
       brightness: Brightness.dark,
@@ -276,8 +270,7 @@ class MyAppState extends State<MyApp> {
           textTheme: darkTextTheme,
           useMaterial3: true,
         ).copyWith(
-          scaffoldBackgroundColor:
-              darkColorScheme.surface, // Tetap gunakan background
+          scaffoldBackgroundColor: darkColorScheme.surface,
           cardColor: darkColorScheme.surface,
           appBarTheme: AppBarTheme(
             backgroundColor: Colors.transparent,

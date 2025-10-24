@@ -32,8 +32,10 @@ class _SiswaDashboardScreenState extends State<SiswaDashboardScreen> {
 
   Future<void> _fetchUserData() async {
     String? userId = _authService.getCurrentUser()?.uid;
-    _userData = await _authService.getUserData(userId);
-      if (mounted) {
+    if (userId != null) {
+      _userData = await _authService.getUserData(userId);
+    }
+    if (mounted) {
       setState(() {
         _isLoading = false;
       });

@@ -2,6 +2,7 @@
 
 import 'package:aplikasi_e_learning_smk/models/user_model.dart';
 import 'package:aplikasi_e_learning_smk/screens/create_announcement_screen.dart';
+import 'package:aplikasi_e_learning_smk/screens/edit_announcement_screen.dart'; // <-- Tambahkan import ini jika belum ada
 import 'package:aplikasi_e_learning_smk/services/auth_service.dart';
 import 'package:aplikasi_e_learning_smk/widgets/announcement_card.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
@@ -18,6 +19,59 @@ class GuruHomeScreen extends StatefulWidget {
 class _GuruHomeScreenState extends State<GuruHomeScreen> {
   final AuthService _authService = AuthService();
   final User? currentUser = FirebaseAuth.instance.currentUser;
+
+  // --- FUNGSI BARU UNTUK HAPUS PENGUMUMAN ---
+  Future<void> _hapusPengumuman(String docId, String judul) async {
+    bool? confirmDelete = await showDialog<bool>(
+      context: context,
+      builder: (BuildContext context) {
+        return AlertDialog(
+          title: const Text('Konfirmasi Hapus'),
+          content: Text(
+            'Apakah Anda yakin ingin menghapus pengumuman "$judul"?',
+          ),
+          actions: <Widget>[
+            TextButton(
+              onPressed: () => Navigator.of(context).pop(false),
+              child: const Text('Batal'),
+            ),
+            TextButton(
+              onPressed: () => Navigator.of(context).pop(true),
+              child: Text(
+                'Hapus',
+                style: TextStyle(color: Theme.of(context).colorScheme.error),
+              ),
+            ),
+          ],
+        );
+      },
+    );
+
+    if (confirmDelete == true) {
+      try {
+        await FirebaseFirestore.instance
+            .collection('pengumuman')
+            .doc(docId)
+            .delete();
+        if (!mounted) return;
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('Pengumuman "$judul" berhasil dihapus.'),
+            backgroundColor: Colors.green,
+          ),
+        );
+      } catch (e) {
+        if (!mounted) return;
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('Gagal menghapus pengumuman: $e'),
+            backgroundColor: Colors.red,
+          ),
+        );
+      }
+    }
+  }
+  // --- AKHIR FUNGSI BARU ---
 
   // Helper widget untuk membuat kartu ringkasan
   Widget _buildSummaryCard(
@@ -258,6 +312,29 @@ class _GuruHomeScreenState extends State<GuruHomeScreen> {
                           dibuatPada: data['dibuatPada'] ?? Timestamp.now(),
                           dibuatOlehUid: data['dibuatOlehUid'] ?? '',
                           untukKelas: data['untukKelas'] ?? 'Tidak diketahui',
+                          // --- TAMBAHKAN INI ---
+                          isGuruView: true,
+                          onEdit: () {
+                            // Navigasi ke halaman edit (buat halaman baru jika belum ada)
+                            // Misalnya: EditAnnouncementScreen
+                            Navigator.push(
+                              context,
+                              MaterialPageRoute(
+                                builder: (context) => EditAnnouncementScreen(
+                                  // Asumsi Anda punya screen ini
+                                  announcementId: doc.id,
+                                  initialData: data,
+                                ),
+                              ),
+                            );
+                          },
+                          onDelete: () {
+                            _hapusPengumuman(
+                              doc.id,
+                              data['judul'] ?? 'Tanpa Judul',
+                            );
+                          },
+                          // --- AKHIR TAMBAHAN ---
                         );
                       }).toList(),
                     );

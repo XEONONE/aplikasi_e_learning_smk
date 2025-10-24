@@ -10,6 +10,11 @@ class AnnouncementCard extends StatefulWidget {
   final Timestamp dibuatPada;
   final String dibuatOlehUid;
   final String untukKelas;
+  // --- TAMBAHKAN PARAMETER INI ---
+  final bool isGuruView; // Untuk menandakan ini tampilan guru
+  final VoidCallback? onEdit;
+  final VoidCallback? onDelete;
+  // --- AKHIR TAMBAHAN PARAMETER ---
 
   const AnnouncementCard({
     super.key,
@@ -18,6 +23,11 @@ class AnnouncementCard extends StatefulWidget {
     required this.dibuatPada,
     required this.dibuatOlehUid,
     required this.untukKelas,
+    // --- TAMBAHKAN INI DI KONSTRUKTOR ---
+    this.isGuruView = false,
+    this.onEdit,
+    this.onDelete,
+    // --- AKHIR TAMBAHAN KONSTRUKTOR ---
   });
 
   @override
@@ -124,6 +134,58 @@ class _AnnouncementCardState extends State<AnnouncementCard> {
               maxLines: 3,
               overflow: TextOverflow.ellipsis,
             ),
+            // --- TAMBAHKAN BAGIAN INI ---
+            if (widget.isGuruView) ...[
+              const SizedBox(height: 12),
+              Row(
+                mainAxisAlignment: MainAxisAlignment.end,
+                children: [
+                  if (widget.onEdit != null)
+                    TextButton.icon(
+                      icon: Icon(
+                        Icons.edit_outlined,
+                        size: 18,
+                        color: theme.colorScheme.secondary,
+                      ),
+                      label: Text(
+                        'Edit',
+                        style: TextStyle(color: theme.colorScheme.secondary),
+                      ),
+                      onPressed: widget.onEdit,
+                      style: TextButton.styleFrom(
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 12,
+                          vertical: 8,
+                        ),
+                        tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+                      ),
+                    ),
+                  if (widget.onEdit != null && widget.onDelete != null)
+                    const SizedBox(width: 8),
+                  if (widget.onDelete != null)
+                    TextButton.icon(
+                      icon: Icon(
+                        Icons.delete_outline,
+                        size: 18,
+                        color: theme.colorScheme.error,
+                      ),
+                      label: Text(
+                        'Hapus',
+                        style: TextStyle(color: theme.colorScheme.error),
+                      ),
+                      onPressed: widget.onDelete,
+                      style: TextButton.styleFrom(
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 12,
+                          vertical: 8,
+                        ),
+                        tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+                      ),
+                    ),
+                ],
+              ),
+            ],
+            // --- AKHIR TAMBAHAN ---
           ],
         ),
       ),

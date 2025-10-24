@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "978948896131",
+    "project_id": "aplikasi-e-learning-smk",
+    "storage_bucket": "aplikasi-e-learning-smk.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:978948896131:android:21f7a3cf4ee7d199f4f2b6",
+        "android_client_info": {
+          "package_name": "com.example.aplikasi_e_learning_smk"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyA4wDZ3yrsB2rVP4EjfPEWTvV64tIcdfkE"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

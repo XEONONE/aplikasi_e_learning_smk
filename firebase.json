@@ -1,0 +1,30 @@
+{
+  "flutter": {
+    "platforms": {
+      "android": {
+        "default": {
+          "projectId": "aplikasi-e-learning-smk",
+          "appId": "1:978948896131:android:21f7a3cf4ee7d199f4f2b6",
+          "fileOutput": "android/app/google-services.json"
+        }
+      },
+      "dart": {
+        "lib/firebase_options.dart": {
+          "projectId": "aplikasi-e-learning-smk",
+          "configurations": {
+            "android": "1:978948896131:android:21f7a3cf4ee7d199f4f2b6",
+            "web": "1:978948896131:web:b888b4dbf390fe26f4f2b6"
+          }
+        }
+      }
+    }
+  },
+  "emulators": {
+    "dataconnect": {
+      "dataDir": "dataconnect/.dataconnect/pgliteData"
+    }
+  },
+  "dataconnect": {
+    "source": "dataconnect"
+  }
+}

@@ -1,4 +1,4 @@
-// Lokasi: lib/screens/guru_dashboard_screen.dart
+// lib/screens/guru_dashboard_screen.dart
 
 import 'package:aplikasi_e_learning_smk/models/user_model.dart';
 import 'package:aplikasi_e_learning_smk/screens/guru_home_screen.dart';
@@ -16,7 +16,8 @@ import 'package:aplikasi_e_learning_smk/screens/edit_profile_screen.dart';
 
 // --- Widget GuruProfileScreen ---
 class GuruProfileScreen extends StatefulWidget {
-  const GuruProfileScreen({super.key});
+  final VoidCallback? onProfileUpdated;
+  const GuruProfileScreen({super.key, this.onProfileUpdated});
 
   @override
   State<GuruProfileScreen> createState() => _GuruProfileScreenState();
@@ -37,10 +38,21 @@ class _GuruProfileScreenState extends State<GuruProfileScreen> {
     }
   }
 
+  // Fungsi internal untuk me-refresh data lokal dan memanggil callback
+  void _refreshUserData() {
+    if (currentUser != null) {
+      // 1. Refresh tampilan Profil
+      setState(() {
+        _userFuture = _authService.getUserData(currentUser!.uid);
+      });
+    }
+    // 2. Beri sinyal ke Dashboard (untuk diteruskan ke Beranda)
+    widget.onProfileUpdated?.call();
+  }
+
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
-    // Tentukan warna teks subtitle berdasarkan tema
     final subtitleColor = theme.textTheme.bodyMedium?.color?.withOpacity(0.7);
 
     return Scaffold(
@@ -51,7 +63,7 @@ class _GuruProfileScreenState extends State<GuruProfileScreen> {
             Text(
               'Akun Saya',
               style: theme.textTheme.titleMedium?.copyWith(
-                color: subtitleColor, // Gunakan subtitleColor
+                color: subtitleColor,
               ),
             ),
             const Text(
@@ -60,8 +72,7 @@ class _GuruProfileScreenState extends State<GuruProfileScreen> {
             ),
           ],
         ),
-        // Style AppBar otomatis dari tema
-        backgroundColor: Colors.transparent, // Transparan agar menyatu
+        backgroundColor: Colors.transparent,
         elevation: 0,
       ),
       body: FutureBuilder<UserModel?>(
@@ -94,7 +105,6 @@ class _GuruProfileScreenState extends State<GuruProfileScreen> {
                   children: [
                     CircleAvatar(
                       radius: 45,
-                      // Background Avatar bisa kontras
                       backgroundColor: theme.brightness == Brightness.dark
                           ? Colors.grey[700]
                           : theme.colorScheme.primary.withOpacity(0.1),
@@ -103,7 +113,6 @@ class _GuruProfileScreenState extends State<GuruProfileScreen> {
                         style: TextStyle(
                           fontSize: 36,
                           fontWeight: FontWeight.bold,
-                          // Warna teks Avatar kontras dengan backgroundnya
                           color: theme.brightness == Brightness.dark
                               ? Colors.white
                               : theme.colorScheme.primary,
@@ -113,29 +122,23 @@ class _GuruProfileScreenState extends State<GuruProfileScreen> {
                     const SizedBox(height: 16),
                     Text(
                       user.nama,
-                      // --- PERBAIKAN: Ambil warna dari tema ---
                       style: theme.textTheme.headlineSmall?.copyWith(
                         fontWeight: FontWeight.bold,
-                        // color: Colors.white, <-- HAPUS
                       ),
                       textAlign: TextAlign.center,
                     ),
                     const SizedBox(height: 4),
                     Text(
                       'NIP: ${user.id}',
-                      // --- PERBAIKAN: Gunakan subtitleColor ---
                       style: theme.textTheme.bodyMedium?.copyWith(
                         color: subtitleColor,
-                        // color: Colors.grey[400], <-- HAPUS
                       ),
                     ),
                     const SizedBox(height: 4),
                     Text(
                       roleDescription,
-                      // --- PERBAIKAN: Gunakan subtitleColor ---
                       style: theme.textTheme.bodyMedium?.copyWith(
                         color: subtitleColor,
-                        // color: Colors.grey[400], <-- HAPUS
                       ),
                     ),
                     const SizedBox(height: 32),
@@ -143,6 +146,7 @@ class _GuruProfileScreenState extends State<GuruProfileScreen> {
                       icon: Icons.edit_outlined,
                       text: 'Edit Profil',
                       onTap: () {
+                        // PENTING: Mendorong ke EditProfileScreen
                         Navigator.push(
                           context,
                           MaterialPageRoute(
@@ -150,12 +154,9 @@ class _GuruProfileScreenState extends State<GuruProfileScreen> {
                                 EditProfileScreen(userData: user),
                           ),
                         ).then((berhasilUpdate) {
+                          // Menerima sinyal 'true' dari EditProfileScreen
                           if (berhasilUpdate == true) {
-                            setState(() {
-                              _userFuture = _authService.getUserData(
-                                currentUser!.uid,
-                              );
-                            });
+                            _refreshUserData(); // Panggil fungsi refresh
                           }
                         });
                       },
@@ -197,7 +198,6 @@ class _GuruProfileScreenState extends State<GuruProfileScreen> {
                                       Navigator.of(context).pop(true),
                                   child: Text(
                                     'Keluar',
-                                    // Ambil warna error dari tema
                                     style: TextStyle(
                                       color: theme.colorScheme.error,
                                     ),
@@ -237,7 +237,6 @@ class _GuruProfileScreenState extends State<GuruProfileScreen> {
     required VoidCallback onTap,
   }) {
     final theme = Theme.of(context);
-    // Tentukan warna ikon dan teks berdasarkan tema
     final iconColor = theme.iconTheme.color?.withOpacity(0.7);
     final textColor = theme.textTheme.bodyLarge?.color;
     final chevronColor = theme.iconTheme.color?.withOpacity(0.5);
@@ -248,7 +247,6 @@ class _GuruProfileScreenState extends State<GuruProfileScreen> {
       child: Container(
         padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
         decoration: BoxDecoration(
-          // Gunakan warna card dari tema dengan opacity
           color: theme.cardColor.withOpacity(0.8),
           borderRadius: BorderRadius.circular(10),
         ),
@@ -269,9 +267,8 @@ class _GuruProfileScreenState extends State<GuruProfileScreen> {
     );
   }
 }
-// ... (Akhir GuruProfileScreen) ...
 
-// --- Widget GuruTaskManagementScreen ---
+// --- Widget GuruTaskManagementScreen (Fix: Pastikan kelas ada) ---
 class GuruTaskManagementScreen extends StatefulWidget {
   const GuruTaskManagementScreen({super.key});
   @override
@@ -284,7 +281,6 @@ class _GuruTaskManagementScreenState extends State<GuruTaskManagementScreen> {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
-    // Tentukan warna teks subtitle berdasarkan tema
     final subtitleColor = theme.textTheme.titleLarge?.color?.withOpacity(0.7);
 
     return Scaffold(
@@ -300,15 +296,13 @@ class _GuruTaskManagementScreenState extends State<GuruTaskManagementScreen> {
                   Text(
                     'Manajemen',
                     style: theme.textTheme.titleLarge?.copyWith(
-                      color: subtitleColor, // Gunakan subtitleColor
-                      // color: Colors.grey[400] <-- HAPUS
+                      color: subtitleColor,
                     ),
                   ),
                   Text(
                     'Tugas',
                     style: theme.textTheme.headlineMedium?.copyWith(
                       fontWeight: FontWeight.bold,
-                      // color: Colors.white <-- HAPUS (ambil dari tema)
                     ),
                   ),
                   const SizedBox(height: 24),
@@ -323,14 +317,6 @@ class _GuruTaskManagementScreenState extends State<GuruTaskManagementScreen> {
                           _selectedToggleIndex = index;
                         });
                       },
-                      // Style diambil dari tema
-                      borderRadius: theme.toggleButtonsTheme.borderRadius,
-                      selectedBorderColor:
-                          theme.toggleButtonsTheme.selectedBorderColor,
-                      selectedColor: theme.toggleButtonsTheme.selectedColor,
-                      fillColor: theme.toggleButtonsTheme.fillColor,
-                      color: theme.toggleButtonsTheme.color,
-                      borderColor: theme.toggleButtonsTheme.borderColor,
                       constraints: const BoxConstraints(
                         minHeight: 40.0,
                         minWidth: 120.0,
@@ -371,9 +357,8 @@ class _GuruTaskManagementScreenState extends State<GuruTaskManagementScreen> {
     );
   }
 }
-// ... (Akhir GuruTaskManagementScreen) ...
 
-// --- CLASS DASHBOARD UTAMA ---
+// --- CLASS DASHBOARD UTAMA (GURU DASHBOARD SCREEN) ---
 class GuruDashboardScreen extends StatefulWidget {
   const GuruDashboardScreen({super.key});
 
@@ -383,6 +368,10 @@ class GuruDashboardScreen extends StatefulWidget {
 
 class _GuruDashboardScreenState extends State<GuruDashboardScreen> {
   int _selectedIndex = 0;
+  // ===== PERBAIKAN UTAMA: Menggunakan tipe publik State<GuruHomeScreen> =====
+  // Ini memperbaiki error 'non_type_as_type_argument'
+  final GlobalKey<State<GuruHomeScreen>> _homeKey =
+      GlobalKey<State<GuruHomeScreen>>();
 
   @override
   void initState() {
@@ -397,66 +386,76 @@ class _GuruDashboardScreenState extends State<GuruDashboardScreen> {
   }
 
   // Daftar halaman
-  static final List<Widget> _pages = <Widget>[
-    const GuruHomeScreen(),
-    // --- Halaman Materi (Indeks 1) ---
-    Scaffold(
-      appBar: AppBar(
-        title: Builder(
-          // Gunakan Builder agar bisa akses Theme
-          builder: (context) {
-            final theme = Theme.of(context);
-            final subtitleColor = theme.textTheme.titleLarge?.color
-                ?.withOpacity(0.7);
-            return Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  'Manajemen',
-                  // --- PERBAIKAN: Gunakan subtitleColor ---
-                  style: theme.textTheme.titleLarge?.copyWith(
-                    color: subtitleColor,
-                    fontSize: 16, // Sedikit lebih kecil
+  @override
+  Widget build(BuildContext context) {
+    final List<Widget> _pages = <Widget>[
+      // --- Halaman Beranda (Indeks 0) ---
+      GuruHomeScreen(key: _homeKey), // Menggunakan key
+      // --- Halaman Materi (Indeks 1) ---
+      Scaffold(
+        appBar: AppBar(
+          title: Builder(
+            builder: (context) {
+              final theme = Theme.of(context);
+              final subtitleColor = theme.textTheme.titleLarge?.color
+                  ?.withOpacity(0.7);
+              return Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    'Manajemen',
+                    style: theme.textTheme.titleLarge?.copyWith(
+                      color: subtitleColor,
+                      fontSize: 16,
+                    ),
                   ),
-                ),
-                const Text(
-                  'Materi',
-                  style: TextStyle(fontWeight: FontWeight.bold, fontSize: 24),
-                ),
-              ],
+                  const Text(
+                    'Materi',
+                    style: TextStyle(fontWeight: FontWeight.bold, fontSize: 24),
+                  ),
+                ],
+              );
+            },
+          ),
+          backgroundColor: Colors.transparent,
+          elevation: 0,
+        ),
+        body: const GuruMateriListScreen(),
+        floatingActionButton: Builder(
+          builder: (BuildContext context) {
+            return FloatingActionButton.extended(
+              heroTag: 'fab_materi',
+              onPressed: () {
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                    builder: (context) => const UploadMateriScreen(),
+                  ),
+                );
+              },
+              label: const Text('Tambah Materi'),
+              icon: const Icon(Icons.add),
             );
           },
         ),
-        backgroundColor: Colors.transparent,
-        elevation: 0,
       ),
-      body: const GuruMateriListScreen(),
-      floatingActionButton: Builder(
-        builder: (BuildContext context) {
-          return FloatingActionButton.extended(
-            heroTag: 'fab_materi',
-            onPressed: () {
-              Navigator.push(
-                context,
-                MaterialPageRoute(
-                  builder: (context) => const UploadMateriScreen(),
-                ),
-              );
-            },
-            label: const Text('Tambah Materi'),
-            icon: const Icon(Icons.add),
-          );
+      // --- Halaman Tugas (Indeks 2) ---
+      const GuruTaskManagementScreen(),
+      // --- Halaman Profil (Indeks 3) ---
+      // Meneruskan Callback ke GuruProfileScreen
+      GuruProfileScreen(
+        onProfileUpdated: () {
+          // ===== PENTING: MENGAKSES FUNGSI REFRESH DENGAN CASTING DINAMIS =====
+          final homeState = _homeKey.currentState;
+          if (homeState != null && homeState.mounted) {
+            // Kita harus menggunakan 'dynamic' untuk memanggil method publik
+            // 'refreshUserData' dari state privat '_GuruHomeScreenState'
+            (homeState as dynamic).refreshUserData();
+          }
         },
       ),
-    ),
-    // --- Halaman Tugas (Indeks 2) ---
-    const GuruTaskManagementScreen(),
-    // --- Halaman Profil (Indeks 3) ---
-    const GuruProfileScreen(),
-  ];
+    ];
 
-  @override
-  Widget build(BuildContext context) {
     return Scaffold(
       body: SafeArea(
         child: IndexedStack(index: _selectedIndex, children: _pages),
@@ -486,7 +485,6 @@ class _GuruDashboardScreenState extends State<GuruDashboardScreen> {
         ],
         currentIndex: _selectedIndex,
         onTap: _onItemTapped,
-        // Style BottomNavBar otomatis dari tema
       ),
     );
   }

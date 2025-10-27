@@ -35,10 +35,33 @@ class AuthService {
     }
   }
 
-// Tambahkan ini di dalam class AuthService
+  // Tambahkan ini di dalam class AuthService
   User? getCurrentUser() {
     return _auth.currentUser;
   }
+
+  // ===== FUNGSI BARU UNTUK UPDATE USER DATA (DIPERLUKAN UNTUK EDIT PROFIL) =====
+  Future<void> updateUserData(String uid, Map<String, dynamic> data) async {
+    try {
+      // Cari dokumen user (ID/NISN) berdasarkan UID
+      var snapshot = await _firestore
+          .collection('users')
+          .where('uid', isEqualTo: uid)
+          .limit(1)
+          .get();
+
+      if (snapshot.docs.isNotEmpty) {
+        // Lakukan update pada dokumen yang ditemukan (menggunakan NIP/NISN sebagai Doc ID)
+        await snapshot.docs.first.reference.update(data);
+      } else {
+        throw Exception("User document not found for UID: $uid");
+      }
+    } catch (e) {
+      print("Error updating user data: $e");
+      rethrow; // Lempar kembali error agar bisa ditangkap oleh _saveProfile
+    }
+  }
+  // ===== AKHIR FUNGSI BARU =====
 
   // Fungsi Aktivasi Akun
   Future<String> activateAccount({
@@ -46,8 +69,10 @@ class AuthService {
     required String password,
   }) async {
     try {
-      DocumentSnapshot userDoc =
-          await _firestore.collection('users').doc(nipNisn).get();
+      DocumentSnapshot userDoc = await _firestore
+          .collection('users')
+          .doc(nipNisn)
+          .get();
 
       if (!userDoc.exists) {
         return "NIP/NISN tidak terdaftar.";
@@ -59,11 +84,8 @@ class AuthService {
       }
 
       String email = data['email'];
-      UserCredential userCredential =
-          await _auth.createUserWithEmailAndPassword(
-        email: email,
-        password: password,
-      );
+      UserCredential userCredential = await _auth
+          .createUserWithEmailAndPassword(email: email, password: password);
 
       await _firestore.collection('users').doc(nipNisn).update({
         'uid': userCredential.user!.uid,
@@ -83,8 +105,10 @@ class AuthService {
     required String password,
   }) async {
     try {
-      DocumentSnapshot userDoc =
-          await _firestore.collection('users').doc(nipNisn).get();
+      DocumentSnapshot userDoc = await _firestore
+          .collection('users')
+          .doc(nipNisn)
+          .get();
       if (!userDoc.exists) {
         return "NIP/NISN atau Password salah.";
       }
@@ -93,7 +117,9 @@ class AuthService {
       await _auth.signInWithEmailAndPassword(email: email, password: password);
       return "Sukses";
     } on FirebaseAuthException catch (e) {
-      if (e.code == 'user-not-found' || e.code == 'wrong-password' || e.code == 'invalid-credential') {
+      if (e.code == 'user-not-found' ||
+          e.code == 'wrong-password' ||
+          e.code == 'invalid-credential') {
         return "NIP/NISN atau Password salah.";
       }
       return e.message ?? "Terjadi error.";

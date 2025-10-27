@@ -268,7 +268,10 @@ class _StudentHomeScreenState extends State<StudentHomeScreen> {
                   mainAxisSpacing: 16.0,
                   shrinkWrap: true,
                   physics: const NeverScrollableScrollPhysics(),
-                  childAspectRatio: 4.0, // <-- Mengikuti kode asli Anda
+                  // ==================== PERBAIKAN DI SINI ====================
+                  // Mengubah rasio agar kartu tidak terlalu pendek
+                  childAspectRatio: 2.0, // <-- Ubah dari 4.0 menjadi 2.0
+                  // ================== AKHIR PERBAIKAN ==================
                   children: [
                     // --- KARTU STAT MATERI (DINAMIS) ---
                     StreamBuilder<QuerySnapshot>(

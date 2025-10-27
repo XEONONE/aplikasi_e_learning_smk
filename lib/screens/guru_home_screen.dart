@@ -2,7 +2,7 @@
 
 import 'package:aplikasi_e_learning_smk/models/user_model.dart';
 import 'package:aplikasi_e_learning_smk/screens/create_announcement_screen.dart';
-import 'package:aplikasi_e_learning_smk/screens/edit_announcement_screen.dart'; // <-- Tambahkan import ini jika belum ada
+import 'package:aplikasi_e_learning_smk/screens/edit_announcement_screen.dart';
 import 'package:aplikasi_e_learning_smk/services/auth_service.dart';
 import 'package:aplikasi_e_learning_smk/widgets/announcement_card.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
@@ -13,15 +13,45 @@ class GuruHomeScreen extends StatefulWidget {
   const GuruHomeScreen({super.key});
 
   @override
+  // Perhatikan: State harus me-return _GuruHomeScreenState
   State<GuruHomeScreen> createState() => _GuruHomeScreenState();
 }
 
 class _GuruHomeScreenState extends State<GuruHomeScreen> {
   final AuthService _authService = AuthService();
   final User? currentUser = FirebaseAuth.instance.currentUser;
+  late Future<UserModel?> _userFuture;
 
-  // --- FUNGSI BARU UNTUK HAPUS PENGUMUMAN ---
+  @override
+  void initState() {
+    super.initState();
+    _userFuture = _fetchUserData();
+  }
+
+  // Fungsi untuk memuat data guru
+  Future<UserModel?> _fetchUserData() async {
+    if (currentUser != null) {
+      // Panggil service untuk mendapatkan data terbaru
+      return _authService.getUserData(currentUser!.uid);
+    }
+    return null;
+  }
+
+  // ===== FUNGSI KRUSIAL: Dipanggil dari Dashboard =====
+  void refreshUserData() {
+    // Memaksa FutureBuilder untuk me-re-fetch data
+    if (mounted) {
+      // PENTING: Hanya panggil setState jika widget masih ada
+      setState(() {
+        _userFuture = _fetchUserData(); // Memuat ulang Future
+      });
+    }
+  }
+  // ===== AKHIR FUNGSI KRUSIAL =====
+
+  // --- FUNGSI HAPUS PENGUMUMAN (Dibiarkan tetap) ---
   Future<void> _hapusPengumuman(String docId, String judul) async {
+    // ... (kode implementasi hapus pengumuman) ...
     bool? confirmDelete = await showDialog<bool>(
       context: context,
       builder: (BuildContext context) {
@@ -71,9 +101,7 @@ class _GuruHomeScreenState extends State<GuruHomeScreen> {
       }
     }
   }
-  // --- AKHIR FUNGSI BARU ---
 
-  // Helper widget untuk membuat kartu ringkasan
   Widget _buildSummaryCard(
     IconData icon,
     String label,
@@ -81,12 +109,10 @@ class _GuruHomeScreenState extends State<GuruHomeScreen> {
     Color iconColor,
   ) {
     final theme = Theme.of(context);
-    // Tentukan warna teks subtitle berdasarkan tema
     final subtitleColor = theme.textTheme.bodyMedium?.color?.withOpacity(0.7);
 
     return Expanded(
       child: Card(
-        // Perbaikan dark mode dari sebelumnya
         color: theme.cardColor,
         elevation: 2.0,
         child: Padding(
@@ -95,7 +121,6 @@ class _GuruHomeScreenState extends State<GuruHomeScreen> {
             children: [
               Icon(icon, color: iconColor, size: 30),
               const SizedBox(width: 12),
-              // Perbaikan layout dari sebelumnya
               Expanded(
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
@@ -132,14 +157,15 @@ class _GuruHomeScreenState extends State<GuruHomeScreen> {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
-    // Tentukan warna teks subtitle berdasarkan tema
     final subtitleColor = theme.textTheme.bodyMedium?.color?.withOpacity(0.7);
 
     return Scaffold(
       body: FutureBuilder<UserModel?>(
-        future: _authService.getUserData(currentUser!.uid),
+        future: _userFuture, // PENTING: menggunakan Future ini
         builder: (context, userSnapshot) {
-          if (userSnapshot.connectionState == ConnectionState.waiting) {
+          if (userSnapshot.connectionState == ConnectionState.waiting &&
+              _userFuture != null) {
+            // Tampilkan loading hanya jika ini bukan hasil dari refresh cepat
             return const Center(child: CircularProgressIndicator());
           }
           if (!userSnapshot.hasData || userSnapshot.data == null) {
@@ -156,7 +182,7 @@ class _GuruHomeScreenState extends State<GuruHomeScreen> {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                // -- BAGIAN HEADER --
+                // -- BAGIAN HEADER (Nama ada di sini) --
                 Row(
                   children: [
                     CircleAvatar(
@@ -185,6 +211,7 @@ class _GuruHomeScreenState extends State<GuruHomeScreen> {
                             color: subtitleColor,
                           ),
                         ),
+                        // NAMA GURU
                         Text(
                           user.nama,
                           style: theme.textTheme.titleLarge?.copyWith(
@@ -197,7 +224,7 @@ class _GuruHomeScreenState extends State<GuruHomeScreen> {
                 ),
                 const SizedBox(height: 24),
 
-                // Card sapaan yang lebih besar
+                // Card sapaan yang lebih besar (Nama juga ada di sini)
                 Card(
                   color: theme.cardColor,
                   elevation: 2.0,
@@ -207,6 +234,7 @@ class _GuruHomeScreenState extends State<GuruHomeScreen> {
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
                         Text(
+                          // NAMA GURU
                           'Selamat Datang, Bpk. ${user.nama.split(' ').first}!',
                           style: theme.textTheme.titleMedium?.copyWith(
                             fontWeight: FontWeight.bold,
@@ -228,7 +256,7 @@ class _GuruHomeScreenState extends State<GuruHomeScreen> {
                 ),
                 const SizedBox(height: 24),
 
-                // -- BAGIAN RINGKASAN --
+                // -- BAGIAN RINGKASAN & PENGUMUMAN (Dibiarkan tetap) --
                 Row(
                   children: [
                     _buildSummaryCard(
@@ -236,9 +264,7 @@ class _GuruHomeScreenState extends State<GuruHomeScreen> {
                       'Total Materi',
                       FirebaseFirestore.instance
                           .collection('materi')
-                          // ===== PERBAIKAN DI SINI (Nama field disamakan) =====
                           .where('diunggahOlehUid', isEqualTo: currentUser!.uid)
-                          // ===== AKHIR PERBAIKAN =====
                           .snapshots(),
                       Colors.green.shade400,
                     ),
@@ -248,17 +274,13 @@ class _GuruHomeScreenState extends State<GuruHomeScreen> {
                       'Total Tugas',
                       FirebaseFirestore.instance
                           .collection('tugas')
-                          // ===== Filter TUGAS sudah benar (tetap guruId) =====
                           .where('guruId', isEqualTo: currentUser!.uid)
-                          // ===== AKHIR =====
                           .snapshots(),
                       Colors.orange.shade400,
                     ),
                   ],
                 ),
                 const SizedBox(height: 32),
-
-                // -- BAGIAN PENGUMUMAN --
                 Text(
                   'Pengumuman Terkini',
                   style: theme.textTheme.titleLarge?.copyWith(
@@ -334,8 +356,7 @@ class _GuruHomeScreenState extends State<GuruHomeScreen> {
                   },
                 ),
 
-                // -- AKHIR BAGIAN PENGUMUMAN --
-                const SizedBox(height: 80), // Ruang untuk FAB
+                const SizedBox(height: 80),
               ],
             ),
           );

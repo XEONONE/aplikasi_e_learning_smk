@@ -17,7 +17,8 @@ class _UploadMateriScreenState extends State<UploadMateriScreen> {
   final _judulController = TextEditingController();
   final _deskripsiController = TextEditingController();
   final _linkController = TextEditingController();
-  final _mapelController = TextEditingController();
+  // --- HAPUS CONTROLLER MAPEL ---
+  // final _mapelController = TextEditingController();
   final _authService = AuthService();
 
   bool _isLoading = false;
@@ -25,10 +26,16 @@ class _UploadMateriScreenState extends State<UploadMateriScreen> {
   List<String> _daftarKelas = [];
   String? _selectedKelas;
 
+  // --- TAMBAHKAN STATE UNTUK MAPEL ---
+  List<String> _daftarMapel = [];
+  String? _selectedMapel;
+  // --- AKHIR TAMBAHAN ---
+
   @override
   void initState() {
     super.initState();
     _fetchKelas();
+    _fetchMapel(); // <-- Panggil fungsi baru
   }
 
   Future<void> _fetchKelas() async {
@@ -48,6 +55,27 @@ class _UploadMateriScreenState extends State<UploadMateriScreen> {
       ).showSnackBar(SnackBar(content: Text('Gagal memuat daftar kelas: $e')));
     }
   }
+
+  // --- TAMBAHKAN FUNGSI BARU UNTUK FETCH MAPEL ---
+  Future<void> _fetchMapel() async {
+    try {
+      // Asumsi Anda punya koleksi 'mapel' dengan field 'namaMapel'
+      var snapshot = await FirebaseFirestore.instance.collection('mapel').get();
+      if (!mounted) return;
+      List<String> mapelList = snapshot.docs
+          .map((doc) => doc['namaMapel'] as String)
+          .toList();
+      setState(() {
+        _daftarMapel = mapelList;
+      });
+    } catch (e) {
+      if (!mounted) return;
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(SnackBar(content: Text('Gagal memuat daftar mapel: $e')));
+    }
+  }
+  // --- AKHIR FUNGSI BARU ---
 
   // --- FUNGSI BARU UNTUK MEMBUAT NOTIFIKASI ---
   Future<void> _createNotification(
@@ -76,12 +104,16 @@ class _UploadMateriScreenState extends State<UploadMateriScreen> {
   // --- AKHIR FUNGSI BARU ---
 
   Future<void> _uploadMateri() async {
-    if (_formKey.currentState!.validate() && _selectedKelas != null) {
+    // --- UPDATE VALIDASI ---
+    if (_formKey.currentState!.validate() &&
+        _selectedKelas != null &&
+        _selectedMapel != null) {
       setState(() => _isLoading = true);
 
       // Mengambil data sebelum proses async
       final String judul = _judulController.text.trim();
-      final String mapel = _mapelController.text.trim();
+      // --- AMBIL DATA DARI STATE, BUKAN CONTROLLER ---
+      final String mapel = _selectedMapel!;
       final String kelas = _selectedKelas!;
 
       try {
@@ -89,7 +121,7 @@ class _UploadMateriScreenState extends State<UploadMateriScreen> {
           'judul': judul,
           'deskripsi': _deskripsiController.text.trim(),
           'fileUrl': _linkController.text.trim(),
-          'mataPelajaran': mapel,
+          'mataPelajaran': mapel, // <-- Gunakan variabel mapel
           'diunggahPada': Timestamp.now(),
           'diunggahOlehUid': _authService.getCurrentUser()!.uid,
           'untukKelas': kelas,
@@ -117,7 +149,10 @@ class _UploadMateriScreenState extends State<UploadMateriScreen> {
     } else {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(
-          content: Text('Harap lengkapi semua field dan pilih kelas.'),
+          // --- UPDATE PESAN ERROR ---
+          content: Text(
+            'Harap lengkapi semua field, pilih mapel, dan pilih kelas.',
+          ),
         ),
       );
     }
@@ -128,7 +163,8 @@ class _UploadMateriScreenState extends State<UploadMateriScreen> {
     _judulController.dispose();
     _deskripsiController.dispose();
     _linkController.dispose();
-    _mapelController.dispose();
+    // --- HAPUS DISPOSE MAPEL CONTROLLER ---
+    // _mapelController.dispose();
     super.dispose();
   }
 
@@ -143,15 +179,26 @@ class _UploadMateriScreenState extends State<UploadMateriScreen> {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
-              TextFormField(
-                controller: _mapelController,
-                decoration: const InputDecoration(
-                  labelText: 'Mata Pelajaran (Contoh: Informatika)',
-                  border: OutlineInputBorder(),
-                ),
+              // --- GANTI TEXTFORMFIELD MENJADI DROPDOWN ---
+              DropdownButtonFormField<String>(
+                initialValue: _selectedMapel,
+                hint: const Text('Pilih Mata Pelajaran'),
+                items: _daftarMapel.map((String mapel) {
+                  return DropdownMenuItem<String>(
+                    value: mapel,
+                    child: Text(mapel),
+                  );
+                }).toList(),
+                onChanged: (String? newValue) {
+                  setState(() {
+                    _selectedMapel = newValue;
+                  });
+                },
                 validator: (value) =>
-                    value!.isEmpty ? 'Mata pelajaran tidak boleh kosong' : null,
+                    value == null ? 'Mata pelajaran harus dipilih' : null,
+                decoration: const InputDecoration(border: OutlineInputBorder()),
               ),
+              // --- AKHIR PERUBAHAN ---
               const SizedBox(height: 16),
               TextFormField(
                 controller: _judulController,
@@ -196,7 +243,7 @@ class _UploadMateriScreenState extends State<UploadMateriScreen> {
               TextFormField(
                 controller: _linkController,
                 decoration: const InputDecoration(
-                  labelText: 'Link Google Drive Materi',
+                  labelText: 'Link Materi',
                   border: OutlineInputBorder(),
                   prefixIcon: Icon(Icons.link),
                 ),

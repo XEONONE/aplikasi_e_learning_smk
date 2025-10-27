@@ -87,7 +87,8 @@ class _TaskDetailScreenState extends State<TaskDetailScreen> {
     if (_linkController.text.trim().isEmpty) {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(
-          content: Text('Masukkan link Google Drive jawaban Anda.'),
+          // --- PERUBAHAN PESAN ERROR ---
+          content: Text('Masukkan link jawaban Anda.'),
           backgroundColor: Colors.orange,
         ),
       );
@@ -107,7 +108,7 @@ class _TaskDetailScreenState extends State<TaskDetailScreen> {
         'userId': currentUser!.uid, // Simpan juga userId jika perlu
         'dikumpulkanPada': Timestamp.now(),
         'fileUrl': _linkController.text.trim(),
-        'fileName': 'Link Google Drive', // Nama file statis
+        'fileName': 'Link Web', // Nama file statis
       };
 
       await docRef.set(dataToSave, SetOptions(merge: true));
@@ -490,12 +491,14 @@ class _TaskDetailScreenState extends State<TaskDetailScreen> {
                       ),
                     const SizedBox(height: 12),
 
-                    // Input Link Google Drive
+                    // ==================== PERUBAHAN DI SINI ====================
                     TextFormField(
                       controller: _linkController,
                       decoration: InputDecoration(
-                        hintText: 'Masukkan link Google Drive...',
-                        labelText: 'Link Google Drive Jawaban',
+                        // Mengubah hintText
+                        hintText: 'https://...',
+                        // Mengubah labelText
+                        labelText: 'Salin link web (Opsional)',
                         prefixIcon: const Icon(Icons.link),
                         border: const OutlineInputBorder(),
                         filled: true, // Tambahkan background
@@ -507,10 +510,9 @@ class _TaskDetailScreenState extends State<TaskDetailScreen> {
                         ),
                       ),
                       keyboardType: TextInputType.url,
-                      // Validasi sederhana untuk memastikan link tidak kosong (jika diperlukan)
-                      // validator: (value) => (value == null || value.trim().isEmpty) ? 'Link tidak boleh kosong' : null,
                     ),
 
+                    // ================== AKHIR PERUBAHAN ==================
                     const SizedBox(height: 20),
                     _isUploading
                         ? const Center(child: CustomLoadingIndicator())
@@ -535,22 +537,16 @@ class _TaskDetailScreenState extends State<TaskDetailScreen> {
                             ),
                           ),
                   ] else ...[
-                    // ===== 2. HAPUS TEKS "Tugas ini sudah dinilai" =====
-                    // Widget yang tadinya di sini sudah dihapus
-                    // dan diganti dengan widget kosong.
                     const SizedBox.shrink(),
-                    // ===== AKHIR PERUBAHAN =====
                   ],
 
-                  // ===== 3. TAMBAHKAN BAGIAN DISKUSI DI LUAR if/else =====
-                  // Ini akan selalu tampil di bagian bawah.
+                  // Bagian Diskusi
                   const Divider(height: 48, thickness: 1),
                   CommentSection(
                     documentId: widget.taskId,
                     collectionPath: 'tugas', // Ini menyambungkan ke ruang guru
                   ),
                   const SizedBox(height: 16),
-                  // ===== AKHIR TAMBAHAN =====
                 ],
               ),
             ),

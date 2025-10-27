@@ -1,6 +1,6 @@
 <manifest xmlns:android="http://schemas.android.com/apk/res/android">
     <application
-        android:label="aplikasi_e_learning_smk"
+        android:label="SMK Rahayu Mulyo"
         android:name="${applicationName}"
         android:icon="@mipmap/logosmk">
         <activity

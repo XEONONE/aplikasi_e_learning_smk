@@ -274,7 +274,11 @@ class _StudentHomeScreenState extends State<StudentHomeScreen> {
                     StreamBuilder<QuerySnapshot>(
                       stream: FirebaseFirestore.instance
                           .collection('materi')
-                          // .where('untukKelas', isEqualTo: userKelas) // Filter dihapus
+                          // ===== PERBAIKAN DI SINI =====
+                          .where(
+                            'untukKelas',
+                            isEqualTo: userKelas,
+                          ) // Filter DIAKTIFKAN
                           .snapshots(),
                       builder: (context, snapshot) {
                         String materiCount = '...';
@@ -297,7 +301,11 @@ class _StudentHomeScreenState extends State<StudentHomeScreen> {
                     StreamBuilder<QuerySnapshot>(
                       stream: FirebaseFirestore.instance
                           .collection('tugas')
-                          // .where('untukKelas', isEqualTo: userKelas) // Filter dihapus
+                          // ===== PERBAIKAN DI SINI =====
+                          .where(
+                            'untukKelas',
+                            isEqualTo: userKelas,
+                          ) // Filter DIAKTIFKAN
                           .snapshots(),
                       builder: (context, snapshot) {
                         String tugasCount = '...';

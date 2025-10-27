@@ -6,6 +6,8 @@ import 'package:intl/intl.dart';
 import 'package:aplikasi_e_learning_smk/widgets/custom_loading_indicator.dart';
 import 'package:url_launcher/url_launcher.dart';
 import 'package:firebase_auth/firebase_auth.dart';
+// ===== 1. IMPORT WIDGET COMMENT_SECTION =====
+import 'package:aplikasi_e_learning_smk/widgets/comment_section.dart';
 
 class TaskDetailScreen extends StatefulWidget {
   final String taskId;
@@ -533,17 +535,22 @@ class _TaskDetailScreenState extends State<TaskDetailScreen> {
                             ),
                           ),
                   ] else ...[
-                    // Tampilkan pesan jika sudah dinilai
-                    Center(
-                      child: Padding(
-                        padding: const EdgeInsets.symmetric(vertical: 20.0),
-                        child: Text(
-                          'Tugas ini sudah dinilai.',
-                          style: TextStyle(color: Colors.grey[600]),
-                        ),
-                      ),
-                    ),
+                    // ===== 2. HAPUS TEKS "Tugas ini sudah dinilai" =====
+                    // Widget yang tadinya di sini sudah dihapus
+                    // dan diganti dengan widget kosong.
+                    const SizedBox.shrink(),
+                    // ===== AKHIR PERUBAHAN =====
                   ],
+
+                  // ===== 3. TAMBAHKAN BAGIAN DISKUSI DI LUAR if/else =====
+                  // Ini akan selalu tampil di bagian bawah.
+                  const Divider(height: 48, thickness: 1),
+                  CommentSection(
+                    documentId: widget.taskId,
+                    collectionPath: 'tugas', // Ini menyambungkan ke ruang guru
+                  ),
+                  const SizedBox(height: 16),
+                  // ===== AKHIR TAMBAHAN =====
                 ],
               ),
             ),

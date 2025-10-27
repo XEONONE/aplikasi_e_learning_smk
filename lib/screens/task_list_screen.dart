@@ -26,6 +26,34 @@ class _TaskListScreenState extends State<TaskListScreen> {
     Intl.defaultLocale = 'id_ID'; // Set locale Indonesia
   }
 
+  // --- TAMBAHAN: FUNGSI UNTUK MENGHITUNG PENGUMPULAN ---
+  Future<int> _getSubmissionCount(String taskId) async {
+    try {
+      // Coba hitung dari koleksi 'pengumpulan'
+      QuerySnapshot snapshot = await FirebaseFirestore.instance
+          .collection('tugas')
+          .doc(taskId)
+          .collection('pengumpulan')
+          .get();
+
+      if (snapshot.docs.isNotEmpty) {
+        return snapshot.docs.length;
+      }
+
+      // Fallback: Coba hitung dari koleksi 'submissions'
+      QuerySnapshot fallbackSnapshot = await FirebaseFirestore.instance
+          .collection('tugas')
+          .doc(taskId)
+          .collection('submissions')
+          .get();
+      return fallbackSnapshot.docs.length;
+    } catch (e) {
+      print("Error counting submissions for task $taskId: $e");
+      return 0; // Kembalikan 0 jika ada error
+    }
+  }
+  // --- AKHIR TAMBAHAN ---
+
   // Fungsi untuk menghapus tugas
   Future<void> _deleteTask(String taskId) async {
     // ... (fungsi _deleteTask tetap sama) ...
@@ -384,6 +412,74 @@ class _TaskListScreenState extends State<TaskListScreen> {
                             ),
                           ],
                         ),
+
+                        // --- TAMBAHAN: JUMLAH PENGUMPULAN ---
+                        const SizedBox(height: 12.0),
+                        const Divider(height: 1, thickness: 0.5),
+                        const SizedBox(height: 12.0),
+                        FutureBuilder<int>(
+                          future: _getSubmissionCount(taskDoc.id),
+                          builder: (context, snapshot) {
+                            final theme = Theme.of(context);
+                            final subtitleColor = theme
+                                .textTheme
+                                .bodySmall
+                                ?.color
+                                ?.withOpacity(0.7);
+
+                            Widget countWidget;
+
+                            if (snapshot.connectionState ==
+                                ConnectionState.waiting) {
+                              countWidget = Text(
+                                'Memuat...',
+                                style: TextStyle(
+                                  fontSize: 12,
+                                  color: subtitleColor,
+                                ),
+                              );
+                            } else if (snapshot.hasError) {
+                              countWidget = Text(
+                                'Error',
+                                style: TextStyle(
+                                  fontSize: 12,
+                                  color: theme.colorScheme.error,
+                                ),
+                              );
+                            } else {
+                              final count = snapshot.data ?? 0;
+                              countWidget = Text(
+                                '$count Siswa', // Teks angka
+                                style: TextStyle(
+                                  fontSize: 14,
+                                  color: theme.colorScheme.primary, // Biru
+                                  fontWeight: FontWeight.bold,
+                                ),
+                              );
+                            }
+
+                            return Row(
+                              children: [
+                                Icon(
+                                  Icons.people_outline,
+                                  size: 16,
+                                  color: subtitleColor,
+                                ),
+                                const SizedBox(width: 8),
+                                countWidget, // Menampilkan angka
+                                const SizedBox(width: 4),
+                                Text(
+                                  'Telah Mengumpulkan', // Teks label
+                                  style: TextStyle(
+                                    fontSize: 12,
+                                    color: subtitleColor,
+                                  ),
+                                ),
+                              ],
+                            );
+                          },
+                        ),
+                        // --- AKHIR TAMBAHAN ---
                       ],
                     ),
                   ),

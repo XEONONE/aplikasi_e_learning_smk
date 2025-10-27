@@ -353,32 +353,34 @@ class _StudentGradedTasksScreenState extends State<StudentGradedTasksScreen> {
         backgroundColor: theme.scaffoldBackgroundColor,
         elevation: 0,
         centerTitle: false, // Judul rata kiri
-        actions: [
-          IconButton(
-            onPressed: () {
-              // TODO: Aksi Pencarian
-            },
-            icon: Icon(
-              Icons.search, // Icon kaca pembesar
-              color: theme.iconTheme.color?.withOpacity(
-                0.9,
-              ), // Sedikit lebih jelas
-            ),
-            tooltip: 'Cari Tugas',
-          ),
-          IconButton(
-            onPressed: () {
-              // TODO: Aksi notifikasi
-            },
-            icon: Icon(
-              Icons.notifications_outlined, // Icon lonceng
-              color: theme.iconTheme.color?.withOpacity(
-                0.9,
-              ), // Sedikit lebih jelas
-            ),
-            tooltip: 'Notifikasi',
-          ),
+        // ===== PERBAIKAN DI SINI (ICON DIHAPUS) =====
+        actions: const [
+          // IconButton(
+          //   onPressed: () {
+          //     // TODO: Aksi Pencarian
+          //   },
+          //   icon: Icon(
+          //     Icons.search, // Icon kaca pembesar
+          //     color: theme.iconTheme.color?.withOpacity(
+          //       0.9,
+          //     ), // Sedikit lebih jelas
+          //   ),
+          //   tooltip: 'Cari Tugas',
+          // ),
+          // IconButton(
+          //   onPressed: () {
+          //     // TODO: Aksi notifikasi
+          //   },
+          //   icon: Icon(
+          //     Icons.notifications_outlined, // Icon lonceng
+          //     color: theme.iconTheme.color?.withOpacity(
+          //       0.9,
+          //     ), // Sedikit lebih jelas
+          //   ),
+          //   tooltip: 'Notifikasi',
+          // ),
         ],
+        // ===== AKHIR PERBAIKAN =====
       ),
       body: FutureBuilder<UserModel?>(
         future: _userFuture,

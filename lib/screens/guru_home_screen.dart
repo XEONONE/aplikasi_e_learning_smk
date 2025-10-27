@@ -86,28 +86,24 @@ class _GuruHomeScreenState extends State<GuruHomeScreen> {
 
     return Expanded(
       child: Card(
-        // ===== PERBAIKAN 1 (DARK MODE & TAMPILAN) =====
+        // Perbaikan dark mode dari sebelumnya
         color: theme.cardColor,
-        elevation: 2.0, // Tambahkan bayangan agar terlihat
-        // ===== AKHIR PERBAIKAN 1 =====
+        elevation: 2.0,
         child: Padding(
           padding: const EdgeInsets.all(16.0),
           child: Row(
             children: [
               Icon(icon, color: iconColor, size: 30),
               const SizedBox(width: 12),
-              // ===== PERBAIKAN 2 (LAYOUT OVERFLOW) =====
-              // Bungkus Column dengan Expanded agar tidak overflow
+              // Perbaikan layout dari sebelumnya
               Expanded(
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
-                  // Tambahkan ini agar teks rata tengah secara vertikal
                   mainAxisAlignment: MainAxisAlignment.center,
                   children: [
                     Text(
                       label,
                       style: TextStyle(color: subtitleColor, fontSize: 14),
-                      // Cegah teks memanjang (opsional tapi bagus)
                       overflow: TextOverflow.ellipsis,
                     ),
                     StreamBuilder<QuerySnapshot>(
@@ -126,7 +122,6 @@ class _GuruHomeScreenState extends State<GuruHomeScreen> {
                   ],
                 ),
               ),
-              // ===== AKHIR PERBAIKAN 2 =====
             ],
           ),
         ),
@@ -204,10 +199,8 @@ class _GuruHomeScreenState extends State<GuruHomeScreen> {
 
                 // Card sapaan yang lebih besar
                 Card(
-                  // ===== PERBAIKAN 3 (DARK MODE) =====
                   color: theme.cardColor,
                   elevation: 2.0,
-                  // ===== AKHIR PERBAIKAN 3 =====
                   child: Padding(
                     padding: const EdgeInsets.all(16.0),
                     child: Column(
@@ -243,6 +236,9 @@ class _GuruHomeScreenState extends State<GuruHomeScreen> {
                       'Total Materi',
                       FirebaseFirestore.instance
                           .collection('materi')
+                          // ===== PERBAIKAN DI SINI =====
+                          .where('guruId', isEqualTo: currentUser!.uid)
+                          // ===== AKHIR PERBAIKAN =====
                           .snapshots(),
                       Colors.green.shade400,
                     ),
@@ -252,6 +248,9 @@ class _GuruHomeScreenState extends State<GuruHomeScreen> {
                       'Total Tugas',
                       FirebaseFirestore.instance
                           .collection('tugas')
+                          // ===== PERBAIKAN DI SINI =====
+                          .where('guruId', isEqualTo: currentUser!.uid)
+                          // ===== AKHIR PERBAIKAN =====
                           .snapshots(),
                       Colors.orange.shade400,
                     ),

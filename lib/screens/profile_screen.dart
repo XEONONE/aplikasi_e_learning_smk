@@ -59,16 +59,18 @@ class _ProfileScreenState extends State<ProfileScreen> {
             const Text('Profil', style: TextStyle(fontWeight: FontWeight.bold)),
           ],
         ),
+        // ===== PERBAIKAN DI SINI (ICON DIHAPUS) =====
         actions: [
-          IconButton(
-            onPressed: () {},
-            // Ambil warna ikon dari tema (redup)
-            icon: Icon(
-              Icons.notifications_outlined,
-              color: theme.iconTheme.color?.withOpacity(0.7),
-            ),
-          ),
+          // IconButton(
+          //   onPressed: () {},
+          //   // Ambil warna ikon dari tema (redup)
+          //   icon: Icon(
+          //     Icons.notifications_outlined,
+          //     color: theme.iconTheme.color?.withOpacity(0.7),
+          //   ),
+          // ),
         ],
+        // ===== AKHIR PERBAIKAN =====
         // Style AppBar otomatis dari tema
         backgroundColor: Colors.transparent, // Transparan agar menyatu
         elevation: 0,

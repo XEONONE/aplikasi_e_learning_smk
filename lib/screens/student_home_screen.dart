@@ -286,7 +286,8 @@ class _StudentHomeScreenState extends State<StudentHomeScreen> {
                         }
                         // Menampilkan total materi
                         return _buildStatCard(
-                          'Materi', // Judul asli
+                          // Anda bisa ganti ini jadi "Total Materi" jika mau
+                          'Total Materi',
                           materiCount, // Nilai dinamis (total)
                           Icons.book_outlined,
                           Colors.green.shade400,
@@ -308,7 +309,8 @@ class _StudentHomeScreenState extends State<StudentHomeScreen> {
                         }
                         // Menampilkan total tugas
                         return _buildStatCard(
-                          'Tugas', // Judul asli
+                          // Anda bisa ganti ini jadi "Total Tugas" jika mau
+                          'Total Tugas',
                           tugasCount, // Nilai dinamis (total)
                           Icons.assignment_outlined,
                           Colors.orange.shade400,
@@ -377,45 +379,68 @@ class _StudentHomeScreenState extends State<StudentHomeScreen> {
   }
 
   // --- WIDGET HELPER ---
+
+  // ===== PERBAIKAN DI SINI =====
   Widget _buildStatCard(
     String title,
     String value,
     IconData icon,
     Color color,
   ) {
+    // --- PERBAIKAN 1: Ambil theme ---
+    final theme = Theme.of(context);
+
     return Card(
+      // --- PERBAIKAN 2: Tentukan warna kartu secara eksplisit ---
+      // Ini akan memastikan kartu memiliki warna latar belakang
+      // yang benar di mode gelap (biasanya sedikit lebih terang
+      // dari scaffold/latar belakang utama)
+      color: theme.cardColor,
+      // --- AKHIR PERBAIKAN WARNA KARTU ---
       elevation: 2.0,
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12.0)),
       child: Padding(
         padding: const EdgeInsets.all(16.0),
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              children: [
-                Text(
-                  title,
-                  style: TextStyle(fontSize: 14, color: Colors.grey.shade600),
-                ),
-                Icon(icon, size: 28, color: color),
-              ],
-            ),
-            const SizedBox(height: 8),
-            Text(
-              value,
-              style: TextStyle(
-                fontSize: 22,
-                fontWeight: FontWeight.bold,
-                color: color,
+        // Ini adalah perbaikan dari error overflow sebelumnya
+        child: SingleChildScrollView(
+          physics: const NeverScrollableScrollPhysics(),
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  Text(
+                    title,
+                    // --- PERBAIKAN 3: Gunakan warna teks dari theme ---
+                    style: TextStyle(
+                      fontSize: 14,
+                      // Gunakan warna teks sekunder dari tema agar
+                      // terlihat jelas di mode terang dan gelap
+                      color: theme.textTheme.bodySmall?.color?.withOpacity(0.7),
+                    ),
+                    // --- AKHIR PERBAIKAN TEKS ---
+                  ),
+                  Icon(icon, size: 28, color: color),
+                ],
               ),
-            ),
-          ],
+              const SizedBox(height: 8),
+              Text(
+                value,
+                style: TextStyle(
+                  fontSize: 22,
+                  fontWeight: FontWeight.bold,
+                  color: color,
+                ),
+              ),
+            ],
+          ),
         ),
       ),
     );
   }
+  // ===== AKHIR PERBAIKAN =====
 
   Widget _buildSubjectCard(
     String subject,

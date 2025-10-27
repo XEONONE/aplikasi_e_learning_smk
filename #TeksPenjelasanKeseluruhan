@@ -1,0 +1,80 @@
+# Penjelasan Lengkap Aplikasi E-Learning SMK
+
+## Pendahuluan
+Aplikasi E-Learning SMK adalah sebuah aplikasi mobile berbasis Flutter yang dirancang khusus untuk mendukung proses pembelajaran di Sekolah Menengah Kejuruan (SMK). Aplikasi ini menggunakan Firebase sebagai backend untuk autentikasi, penyimpanan data, dan notifikasi push.
+
+## Arsitektur Aplikasi
+
+### Teknologi Utama
+- **Frontend**: Flutter (Dart)
+- **Backend**: Firebase (Firestore, Authentication, Cloud Functions, Cloud Messaging)
+- **Push Notification**: Firebase Cloud Messaging + Node.js server
+- **State Management**: StreamBuilder untuk real-time data
+- **UI Framework**: Material Design 3
+
+### Struktur Proyek
+```
+aplikasi_e_learning_smk/
+├── lib/                          # Kode aplikasi Flutter
+│   ├── main.dart                 # Entry point aplikasi
+│   ├── auth_gate.dart            # Gate autentikasi
+│   ├── firebase_options.dart     # Konfigurasi Firebase
+│   ├── models/                   # Model data
+│   │   ├── user_model.dart       # Model pengguna
+│   │   └── materi_model.dart     # Model materi
+│   ├── screens/                  # Layar aplikasi
+│   │   ├── login_screen.dart     # Layar login
+│   │   ├── activation_screen.dart # Aktivasi akun
+│   │   ├── siswa_dashboard_screen.dart # Dashboard siswa
+│   │   ├── guru_dashboard_screen.dart  # Dashboard guru
+│   │   └── ... (layar lainnya)
+│   ├── services/                 # Layanan backend
+│   │   ├── auth_service.dart     # Layanan autentikasi
+│   │   └── notification_service.dart # Layanan notifikasi
+│   └── widgets/                  # Komponen UI reusable
+│       ├── announcement_card.dart # Kartu pengumuman
+│       ├── materi_card.dart      # Kartu materi
+│       └── ...
+├── functions/                    # Firebase Cloud Functions
+├── push-server/                  # Server push notification
+├── android/                      # Konfigurasi Android
+├── ios/                          # Konfigurasi iOS
+└── web/                          # Konfigurasi Web
+```
+
+## Fitur Utama
+
+### 1. Autentikasi dan Otorisasi
+- **Login**: Menggunakan NIP/NISN dan password
+- **Aktivasi Akun**: Siswa mengaktifkan akun pertama kali
+- **Role-based Access**: Guru dan Siswa memiliki dashboard berbeda
+- **Persistent Login**: Tetap login setelah restart aplikasi
+
+### 2. Dashboard Siswa
+- **Beranda**: Statistik, mata pelajaran, tugas mendatang, pengumuman
+- **Materi**: Daftar materi per mata pelajaran, download materi
+- **Tugas**: Daftar tugas aktif dan riwayat, submit tugas
+- **Profil**: Informasi pribadi, pengaturan akun
+
+### 3. Dashboard Guru
+- **Beranda**: Pengumuman sekolah
+- **Materi**: Upload, edit, hapus materi per kelas
+- **Tugas**: Buat, edit, hapus tugas, lihat submission siswa
+- **Pengumuman**: Buat, edit, hapus pengumuman
+
+### 4. Sistem Notifikasi
+- **Push Notification**: Notifikasi real-time via FCM
+- **Badge Notifikasi**: Indikator notifikasi belum dibaca
+- **In-app Notification**: Notifikasi dalam aplikasi
+
+### 5. Manajemen Materi
+- **Upload Materi**: Link Google Drive, deskripsi, mata pelajaran, kelas
+- **Grouping**: Materi dikelompokkan per mata pelajaran
+- **Download**: Siswa dapat mendownload materi
+
+### 6. Sistem Tugas
+- **Buat Tugas**: Judul, deskripsi, deadline, kelas target
+- **Submission**: Siswa upload jawaban tugas
+- **Grading**: Guru nilai submission siswa
+- **Riwayat**: Tugas aktif dan selesai
+

@@ -236,8 +236,8 @@ class _GuruHomeScreenState extends State<GuruHomeScreen> {
                       'Total Materi',
                       FirebaseFirestore.instance
                           .collection('materi')
-                          // ===== PERBAIKAN DI SINI =====
-                          .where('guruId', isEqualTo: currentUser!.uid)
+                          // ===== PERBAIKAN DI SINI (Nama field disamakan) =====
+                          .where('diunggahOlehUid', isEqualTo: currentUser!.uid)
                           // ===== AKHIR PERBAIKAN =====
                           .snapshots(),
                       Colors.green.shade400,
@@ -248,9 +248,9 @@ class _GuruHomeScreenState extends State<GuruHomeScreen> {
                       'Total Tugas',
                       FirebaseFirestore.instance
                           .collection('tugas')
-                          // ===== PERBAIKAN DI SINI =====
+                          // ===== Filter TUGAS sudah benar (tetap guruId) =====
                           .where('guruId', isEqualTo: currentUser!.uid)
-                          // ===== AKHIR PERBAIKAN =====
+                          // ===== AKHIR =====
                           .snapshots(),
                       Colors.orange.shade400,
                     ),

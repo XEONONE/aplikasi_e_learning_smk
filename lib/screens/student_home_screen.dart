@@ -5,7 +5,6 @@ import 'package:aplikasi_e_learning_smk/widgets/announcement_card.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
-import 'package:aplikasi_e_learning_smk/screens/task_detail_screen.dart';
 import 'package:aplikasi_e_learning_smk/widgets/custom_loading_indicator.dart';
 import 'package:aplikasi_e_learning_smk/screens/student_materi_list_screen.dart';
 // --- IMPORT BARU UNTUK NOTIFIKASI ---
@@ -58,7 +57,7 @@ class _StudentHomeScreenState extends State<StudentHomeScreen> {
   Future<void> _fetchUserKelas() async {
     if (_userKelas != null) return; // Sudah didapat dari _fetchStudentData
     if (_currentUser != null) {
-      final userData = await _authService.getUserData(_currentUser.uid);
+      final userData = await _authService.getUserData(_currentUser!.uid);
       if (mounted) {
         setState(() {
           _userKelas = userData?.kelas;
@@ -94,7 +93,7 @@ class _StudentHomeScreenState extends State<StudentHomeScreen> {
           .where(
             'targetAudience',
             arrayContainsAny: [
-              _currentUser.uid,
+              _currentUser!.uid,
               'kelas_${_userKelas!}',
               'all_users',
             ],
@@ -275,7 +274,7 @@ class _StudentHomeScreenState extends State<StudentHomeScreen> {
                     StreamBuilder<QuerySnapshot>(
                       stream: FirebaseFirestore.instance
                           .collection('materi')
-                          .where('untukKelas', isEqualTo: userKelas)
+                          // .where('untukKelas', isEqualTo: userKelas) // Filter dihapus
                           .snapshots(),
                       builder: (context, snapshot) {
                         String materiCount = '...';
@@ -298,7 +297,7 @@ class _StudentHomeScreenState extends State<StudentHomeScreen> {
                     StreamBuilder<QuerySnapshot>(
                       stream: FirebaseFirestore.instance
                           .collection('tugas')
-                          .where('untukKelas', isEqualTo: userKelas)
+                          // .where('untukKelas', isEqualTo: userKelas) // Filter dihapus
                           .snapshots(),
                       builder: (context, snapshot) {
                         String tugasCount = '...';
@@ -350,16 +349,18 @@ class _StudentHomeScreenState extends State<StudentHomeScreen> {
                 _buildSubjectSection(userKelas),
                 const SizedBox(height: 32),
 
-                // Tugas Mendatang Section (DINAMIS)
-                Text(
-                  'Tugas Mendatang',
-                  style: Theme.of(
-                    context,
-                  ).textTheme.titleLarge?.copyWith(fontWeight: FontWeight.bold),
-                ),
-                const SizedBox(height: 16),
-                _buildUpcomingTaskSection(userKelas),
-                const SizedBox(height: 32),
+                // ===== PERUBAHAN DI SINI =====
+                // --- Bagian Tugas Mendatang Dihapus ---
+                // Text(
+                //   'Tugas Mendatang',
+                //   style: Theme.of(
+                //     context,
+                //   ).textTheme.titleLarge?.copyWith(fontWeight: FontWeight.bold),
+                // ),
+                // const SizedBox(height: 16),
+                // _buildUpcomingTaskSection(userKelas),
+                // const SizedBox(height: 32),
+                // ===== AKHIR PERUBAHAN =====
 
                 // BAGIAN PENGUMUMAN
                 Text(
@@ -500,6 +501,10 @@ class _StudentHomeScreenState extends State<StudentHomeScreen> {
     );
   }
 
+  // ===== PERUBAHAN DI SINI =====
+  // Fungsi ini tidak lagi dipanggil, jadi bisa dihapus
+  // atau dikomentari agar tidak memakan tempat.
+  /*
   Widget _buildUpcomingTask(
     String title,
     String subject,
@@ -539,6 +544,8 @@ class _StudentHomeScreenState extends State<StudentHomeScreen> {
       ),
     );
   }
+  */
+  // ===== AKHIR PERUBAHAN =====
 
   // --- METHOD BARU UNTUK BAGIAN MATA PELAJARAN (DINAMIS) ---
   Widget _buildSubjectSection(String? userKelas) {
@@ -635,6 +642,10 @@ class _StudentHomeScreenState extends State<StudentHomeScreen> {
     );
   }
 
+  // ===== PERUBAHAN DI SINI =====
+  // Fungsi ini tidak lagi dipanggil, jadi bisa dihapus
+  // atau dikomentari agar tidak memakan tempat.
+  /*
   // --- METHOD BARU UNTUK TUGAS MENDATANG (DINAMIS) ---
   Widget _buildUpcomingTaskSection(String? userKelas) {
     return StreamBuilder<QuerySnapshot>(
@@ -723,6 +734,8 @@ class _StudentHomeScreenState extends State<StudentHomeScreen> {
       },
     );
   }
+  */
+  // ===== AKHIR PERUBAHAN =====
 
   // --- METHOD BARU UNTUK BAGIAN PENGUMUMAN ---
   Widget _buildAnnouncementSection(String? userKelas) {

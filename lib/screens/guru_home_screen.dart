@@ -235,7 +235,7 @@ class _GuruHomeScreenState extends State<GuruHomeScreen> {
                       children: [
                         Text(
                           // NAMA GURU
-                          'Selamat Datang, Bpk. ${user.nama.split(' ').first}!',
+                          'Selamat Datang. ${user.nama.split(' ').first}!',
                           style: theme.textTheme.titleMedium?.copyWith(
                             fontWeight: FontWeight.bold,
                           ),

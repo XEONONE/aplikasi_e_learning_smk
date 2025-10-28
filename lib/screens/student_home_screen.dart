@@ -270,7 +270,7 @@ class _StudentHomeScreenState extends State<StudentHomeScreen> {
                   physics: const NeverScrollableScrollPhysics(),
                   // ==================== PERBAIKAN DI SINI ====================
                   // Mengubah rasio agar kartu tidak terlalu pendek
-                  childAspectRatio: 2.0, // <-- Ubah dari 4.0 menjadi 2.0
+                  childAspectRatio: 1.0, // <-- Ubah dari 4.0 menjadi 2.0
                   // ================== AKHIR PERBAIKAN ==================
                   children: [
                     // --- KARTU STAT MATERI (DINAMIS) ---

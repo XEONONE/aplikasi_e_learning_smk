@@ -4,6 +4,8 @@ import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:aplikasi_e_learning_smk/services/auth_service.dart';
 import '../widgets/custom_loading_indicator.dart';
+import 'package:firebase_auth/firebase_auth.dart'; // Import Firebase Auth
+import 'package:aplikasi_e_learning_smk/models/user_model.dart'; // Import UserModel
 
 class UploadMateriScreen extends StatefulWidget {
   const UploadMateriScreen({super.key});
@@ -17,27 +19,36 @@ class _UploadMateriScreenState extends State<UploadMateriScreen> {
   final _judulController = TextEditingController();
   final _deskripsiController = TextEditingController();
   final _linkController = TextEditingController();
-  // --- HAPUS CONTROLLER MAPEL ---
-  // final _mapelController = TextEditingController();
   final _authService = AuthService();
+  final User? currentUser =
+      FirebaseAuth.instance.currentUser; // Ambil user saat ini
 
   bool _isLoading = false;
 
-  List<String> _daftarKelas = [];
+  // Hapus _daftarKelas, kita akan pakai FutureBuilder untuk menampilkannya
+  // List<String> _daftarKelas = [];
   String? _selectedKelas;
 
-  // --- TAMBAHKAN STATE UNTUK MAPEL ---
   List<String> _daftarMapel = [];
   String? _selectedMapel;
-  // --- AKHIR TAMBAHAN ---
+
+  // Future untuk mengambil data guru
+  late Future<UserModel?> _guruFuture;
 
   @override
   void initState() {
     super.initState();
-    _fetchKelas();
-    _fetchMapel(); // <-- Panggil fungsi baru
+    // Ganti _fetchKelas() dengan inisialisasi _guruFuture
+    if (currentUser != null) {
+      _guruFuture = _authService.getUserData(currentUser!.uid);
+    } else {
+      _guruFuture = Future.value(null);
+    }
+    _fetchMapel();
   }
 
+  // --- HAPUS FUNGSI _fetchKelas() LAMA ---
+  /*
   Future<void> _fetchKelas() async {
     try {
       var snapshot = await FirebaseFirestore.instance.collection('kelas').get();
@@ -55,11 +66,11 @@ class _UploadMateriScreenState extends State<UploadMateriScreen> {
       ).showSnackBar(SnackBar(content: Text('Gagal memuat daftar kelas: $e')));
     }
   }
+  */
 
-  // --- TAMBAHKAN FUNGSI BARU UNTUK FETCH MAPEL ---
+  // --- FUNGSI BARU UNTUK FETCH MAPEL (TETAP SAMA) ---
   Future<void> _fetchMapel() async {
     try {
-      // Asumsi Anda punya koleksi 'mapel' dengan field 'namaMapel'
       var snapshot = await FirebaseFirestore.instance.collection('mapel').get();
       if (!mounted) return;
       List<String> mapelList = snapshot.docs
@@ -75,9 +86,8 @@ class _UploadMateriScreenState extends State<UploadMateriScreen> {
       ).showSnackBar(SnackBar(content: Text('Gagal memuat daftar mapel: $e')));
     }
   }
-  // --- AKHIR FUNGSI BARU ---
 
-  // --- FUNGSI BARU UNTUK MEMBUAT NOTIFIKASI ---
+  // --- FUNGSI BARU UNTUK MEMBUAT NOTIFIKASI (TETAP SAMA) ---
   Future<void> _createNotification(
     String judulMateri,
     String mapel,
@@ -92,27 +102,21 @@ class _UploadMateriScreenState extends State<UploadMateriScreen> {
         'targetAudience': [
           'kelas_$kelas',
         ], // Targetnya adalah kelas yang dipilih
-        // --- TAMBAHAN BARU ---
         'isRead': false, // Tandai sebagai belum dibaca
-        // --- AKHIR TAMBAHAN BARU ---
       });
     } catch (e) {
       print('Gagal membuat notifikasi: $e');
-      // Tidak perlu menampilkan error ke user, biarkan proses upload utama berjalan
     }
   }
-  // --- AKHIR FUNGSI BARU ---
 
-  Future<void> _uploadMateri() async {
-    // --- UPDATE VALIDASI ---
+  // --- FUNGSI UPLOAD MATERI (DIBUAT ASYNC AGAR BISA MENGGUNAKAN DATA GURU) ---
+  Future<void> _uploadMateri(String guruId, String guruNama) async {
     if (_formKey.currentState!.validate() &&
         _selectedKelas != null &&
         _selectedMapel != null) {
       setState(() => _isLoading = true);
 
-      // Mengambil data sebelum proses async
       final String judul = _judulController.text.trim();
-      // --- AMBIL DATA DARI STATE, BUKAN CONTROLLER ---
       final String mapel = _selectedMapel!;
       final String kelas = _selectedKelas!;
 
@@ -121,15 +125,14 @@ class _UploadMateriScreenState extends State<UploadMateriScreen> {
           'judul': judul,
           'deskripsi': _deskripsiController.text.trim(),
           'fileUrl': _linkController.text.trim(),
-          'mataPelajaran': mapel, // <-- Gunakan variabel mapel
+          'mataPelajaran': mapel,
           'diunggahPada': Timestamp.now(),
-          'diunggahOlehUid': _authService.getCurrentUser()!.uid,
+          'diunggahOlehUid': guruId, // Gunakan ID guru
+          'guruNama': guruNama, // Tambahkan nama guru
           'untukKelas': kelas,
         });
 
-        // --- PANGGIL FUNGSI NOTIFIKASI SETELAH SUKSES ---
         await _createNotification(judul, mapel, kelas);
-        // --- AKHIR PANGGILAN FUNGSI ---
 
         if (!mounted) return;
         ScaffoldMessenger.of(context).showSnackBar(
@@ -149,7 +152,6 @@ class _UploadMateriScreenState extends State<UploadMateriScreen> {
     } else {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(
-          // --- UPDATE PESAN ERROR ---
           content: Text(
             'Harap lengkapi semua field, pilih mapel, dan pilih kelas.',
           ),
@@ -163,107 +165,152 @@ class _UploadMateriScreenState extends State<UploadMateriScreen> {
     _judulController.dispose();
     _deskripsiController.dispose();
     _linkController.dispose();
-    // --- HAPUS DISPOSE MAPEL CONTROLLER ---
-    // _mapelController.dispose();
     super.dispose();
   }
 
   @override
   Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final fieldColor =
+        theme.inputDecorationTheme.fillColor ?? Colors.grey.shade200;
+
     return Scaffold(
       appBar: AppBar(title: const Text('Upload Materi Baru')),
-      body: SingleChildScrollView(
-        padding: const EdgeInsets.all(16.0),
-        child: Form(
-          key: _formKey,
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.stretch,
-            children: [
-              // --- GANTI TEXTFORMFIELD MENJADI DROPDOWN ---
-              DropdownButtonFormField<String>(
-                initialValue: _selectedMapel,
-                hint: const Text('Pilih Mata Pelajaran'),
-                items: _daftarMapel.map((String mapel) {
-                  return DropdownMenuItem<String>(
-                    value: mapel,
-                    child: Text(mapel),
-                  );
-                }).toList(),
-                onChanged: (String? newValue) {
-                  setState(() {
-                    _selectedMapel = newValue;
-                  });
-                },
-                validator: (value) =>
-                    value == null ? 'Mata pelajaran harus dipilih' : null,
-                decoration: const InputDecoration(border: OutlineInputBorder()),
-              ),
-              // --- AKHIR PERUBAHAN ---
-              const SizedBox(height: 16),
-              TextFormField(
-                controller: _judulController,
-                decoration: const InputDecoration(
-                  labelText: 'Judul Materi',
-                  border: OutlineInputBorder(),
+      // --- WRAP DENGAN FUTUREBUILDER UNTUK DATA GURU ---
+      body: FutureBuilder<UserModel?>(
+        future: _guruFuture,
+        builder: (context, snapshot) {
+          if (snapshot.connectionState == ConnectionState.waiting) {
+            return const Center(child: CustomLoadingIndicator());
+          }
+          if (!snapshot.hasData || snapshot.data == null) {
+            return const Center(child: Text('Gagal memuat data guru.'));
+          }
+          if (currentUser == null) {
+            return const Center(child: Text('User tidak terautentikasi.'));
+          }
+
+          final guruData = snapshot.data!;
+          // Ambil daftar kelas dari data guru
+          final List<String> kelasDiajar = guruData.mengajarKelas ?? [];
+          final String guruId = currentUser!.uid;
+          final String guruNama = guruData.nama;
+
+          // Jika guru belum mengajar kelas apapun
+          if (kelasDiajar.isEmpty) {
+            return Center(
+              child: Padding(
+                padding: const EdgeInsets.all(32.0),
+                child: Text(
+                  'Profil Anda belum diatur untuk mengajar di kelas mana pun. Silakan hubungi administrator.',
+                  textAlign: TextAlign.center,
+                  style: theme.textTheme.titleMedium,
                 ),
-                validator: (value) =>
-                    value!.isEmpty ? 'Judul tidak boleh kosong' : null,
               ),
-              const SizedBox(height: 16),
-              TextFormField(
-                controller: _deskripsiController,
-                decoration: const InputDecoration(
-                  labelText: 'Deskripsi',
-                  border: OutlineInputBorder(),
-                ),
-                maxLines: 4,
-                validator: (value) =>
-                    value!.isEmpty ? 'Deskripsi tidak boleh kosong' : null,
-              ),
-              const SizedBox(height: 16),
-              DropdownButtonFormField<String>(
-                initialValue: _selectedKelas,
-                hint: const Text('Pilih Kelas'),
-                items: _daftarKelas.map((String kelas) {
-                  return DropdownMenuItem<String>(
-                    value: kelas,
-                    child: Text(kelas),
-                  );
-                }).toList(),
-                onChanged: (String? newValue) {
-                  setState(() {
-                    _selectedKelas = newValue;
-                  });
-                },
-                validator: (value) =>
-                    value == null ? 'Kelas harus dipilih' : null,
-                decoration: const InputDecoration(border: OutlineInputBorder()),
-              ),
-              const SizedBox(height: 24),
-              TextFormField(
-                controller: _linkController,
-                decoration: const InputDecoration(
-                  labelText: 'Link Materi',
-                  border: OutlineInputBorder(),
-                  prefixIcon: Icon(Icons.link),
-                ),
-                validator: (value) =>
-                    value!.isEmpty ? 'Link tidak boleh kosong' : null,
-              ),
-              const SizedBox(height: 24),
-              _isLoading
-                  ? const CustomLoadingIndicator()
-                  : ElevatedButton.icon(
-                      icon: const Icon(Icons.upload_file),
-                      label: const Text('UPLOAD MATERI'),
-                      onPressed: _uploadMateri,
-                      style: ElevatedButton.styleFrom(
-                        padding: const EdgeInsets.symmetric(vertical: 16),
-                      ),
+            );
+          }
+
+          // Gunakan daftar kelas yang sudah difilter
+          return SingleChildScrollView(
+            padding: const EdgeInsets.all(16.0),
+            child: Form(
+              key: _formKey,
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.stretch,
+                children: [
+                  // DROPDOWN MATA PELAJARAN
+                  DropdownButtonFormField<String>(
+                    initialValue: _selectedMapel,
+                    hint: const Text('Pilih Mata Pelajaran'),
+                    items: _daftarMapel.map((String mapel) {
+                      return DropdownMenuItem<String>(
+                        value: mapel,
+                        child: Text(mapel),
+                      );
+                    }).toList(),
+                    onChanged: (String? newValue) {
+                      setState(() {
+                        _selectedMapel = newValue;
+                      });
+                    },
+                    validator: (value) =>
+                        value == null ? 'Mata pelajaran harus dipilih' : null,
+                    decoration: const InputDecoration(
+                      border: OutlineInputBorder(),
                     ),
-            ],
-          ),
-        ),
+                  ),
+                  const SizedBox(height: 16),
+                  TextFormField(
+                    controller: _judulController,
+                    decoration: const InputDecoration(
+                      labelText: 'Judul Materi',
+                      border: OutlineInputBorder(),
+                    ),
+                    validator: (value) =>
+                        value!.isEmpty ? 'Judul tidak boleh kosong' : null,
+                  ),
+                  const SizedBox(height: 16),
+                  TextFormField(
+                    controller: _deskripsiController,
+                    decoration: const InputDecoration(
+                      labelText: 'Deskripsi',
+                      border: OutlineInputBorder(),
+                    ),
+                    maxLines: 4,
+                    validator: (value) =>
+                        value!.isEmpty ? 'Deskripsi tidak boleh kosong' : null,
+                  ),
+                  const SizedBox(height: 16),
+
+                  // DROPDOWN KELAS (Sudah Dibatasi Sesuai Guru)
+                  DropdownButtonFormField<String>(
+                    initialValue: _selectedKelas,
+                    hint: const Text('Pilih Kelas'),
+                    items: kelasDiajar.map((String kelas) {
+                      return DropdownMenuItem<String>(
+                        value: kelas,
+                        child: Text(kelas),
+                      );
+                    }).toList(),
+                    onChanged: (String? newValue) {
+                      setState(() {
+                        _selectedKelas = newValue;
+                      });
+                    },
+                    validator: (value) =>
+                        value == null ? 'Kelas harus dipilih' : null,
+                    decoration: const InputDecoration(
+                      border: OutlineInputBorder(),
+                    ),
+                  ),
+                  const SizedBox(height: 24),
+                  TextFormField(
+                    controller: _linkController,
+                    decoration: const InputDecoration(
+                      labelText: 'Link Materi',
+                      border: OutlineInputBorder(),
+                      prefixIcon: Icon(Icons.link),
+                    ),
+                    validator: (value) =>
+                        value!.isEmpty ? 'Link tidak boleh kosong' : null,
+                  ),
+                  const SizedBox(height: 24),
+                  _isLoading
+                      ? const CustomLoadingIndicator()
+                      : ElevatedButton.icon(
+                          icon: const Icon(Icons.upload_file),
+                          label: const Text('UPLOAD MATERI'),
+                          // Panggil fungsi upload dengan data guru
+                          onPressed: () => _uploadMateri(guruId, guruNama),
+                          style: ElevatedButton.styleFrom(
+                            padding: const EdgeInsets.symmetric(vertical: 16),
+                          ),
+                        ),
+                ],
+              ),
+            ),
+          );
+        },
       ),
     );
   }

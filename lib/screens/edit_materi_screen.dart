@@ -159,7 +159,7 @@ class _EditMateriScreenState extends State<EditMateriScreen> {
               TextFormField(
                 controller: _linkController,
                 decoration: const InputDecoration(
-                  labelText: 'Link Google Drive Materi',
+                  labelText: 'Link Materi',
                   border: OutlineInputBorder(),
                   prefixIcon: Icon(Icons.link),
                 ),

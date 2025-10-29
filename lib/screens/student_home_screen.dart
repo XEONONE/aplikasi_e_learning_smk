@@ -192,7 +192,9 @@ class _StudentHomeScreenState extends State<StudentHomeScreen> {
           }
 
           if (snapshot.hasError || !snapshot.hasData || snapshot.data == null) {
-            print("Error fetching user data: ${snapshot.error}");
+            debugPrint(
+              "Error fetching user data: ${snapshot.error}",
+            ); // Ganti print
             return const Center(
               child: Text('Gagal memuat data siswa. Coba lagi nanti.'),
             );
@@ -220,13 +222,17 @@ class _StudentHomeScreenState extends State<StudentHomeScreen> {
                       end: Alignment.bottomRight,
                       colors: [
                         Colors.indigo,
-                        const Color(0xFF7C3AED).withOpacity(0.8),
+                        const Color(
+                          0xFF7C3AED,
+                        ).withAlpha((255 * 0.8).round()), // Ganti withOpacity
                       ],
                     ),
                     borderRadius: const BorderRadius.all(Radius.circular(16.0)),
                     boxShadow: [
                       BoxShadow(
-                        color: Colors.indigo.withOpacity(0.3),
+                        color: Colors.indigo.withAlpha(
+                          (255 * 0.3).round(),
+                        ), // Ganti withOpacity
                         blurRadius: 8,
                         offset: const Offset(0, 4),
                       ),
@@ -268,20 +274,13 @@ class _StudentHomeScreenState extends State<StudentHomeScreen> {
                   mainAxisSpacing: 16.0,
                   shrinkWrap: true,
                   physics: const NeverScrollableScrollPhysics(),
-                  // ==================== PERBAIKAN DI SINI ====================
-                  // Mengubah rasio agar kartu tidak terlalu pendek
-                  childAspectRatio: 1.0, // <-- Ubah dari 4.0 menjadi 2.0
-                  // ================== AKHIR PERBAIKAN ==================
+                  childAspectRatio: 5.0, // Kembalikan ke 2.0
                   children: [
                     // --- KARTU STAT MATERI (DINAMIS) ---
                     StreamBuilder<QuerySnapshot>(
                       stream: FirebaseFirestore.instance
                           .collection('materi')
-                          // ===== PERBAIKAN DI SINI =====
-                          .where(
-                            'untukKelas',
-                            isEqualTo: userKelas,
-                          ) // Filter DIAKTIFKAN
+                          .where('untukKelas', isEqualTo: userKelas)
                           .snapshots(),
                       builder: (context, snapshot) {
                         String materiCount = '...';
@@ -290,11 +289,9 @@ class _StudentHomeScreenState extends State<StudentHomeScreen> {
                         } else if (snapshot.hasError) {
                           materiCount = 'Err';
                         }
-                        // Menampilkan total materi
                         return _buildStatCard(
-                          // Anda bisa ganti ini jadi "Total Materi" jika mau
                           'Total Materi',
-                          materiCount, // Nilai dinamis (total)
+                          materiCount,
                           Icons.book_outlined,
                           Colors.green.shade400,
                         );
@@ -304,11 +301,7 @@ class _StudentHomeScreenState extends State<StudentHomeScreen> {
                     StreamBuilder<QuerySnapshot>(
                       stream: FirebaseFirestore.instance
                           .collection('tugas')
-                          // ===== PERBAIKAN DI SINI =====
-                          .where(
-                            'untukKelas',
-                            isEqualTo: userKelas,
-                          ) // Filter DIAKTIFKAN
+                          .where('untukKelas', isEqualTo: userKelas)
                           .snapshots(),
                       builder: (context, snapshot) {
                         String tugasCount = '...';
@@ -317,11 +310,9 @@ class _StudentHomeScreenState extends State<StudentHomeScreen> {
                         } else if (snapshot.hasError) {
                           tugasCount = 'Err';
                         }
-                        // Menampilkan total tugas
                         return _buildStatCard(
-                          // Anda bisa ganti ini jadi "Total Tugas" jika mau
                           'Total Tugas',
-                          tugasCount, // Nilai dinamis (total)
+                          tugasCount,
                           Icons.assignment_outlined,
                           Colors.orange.shade400,
                         );
@@ -329,8 +320,7 @@ class _StudentHomeScreenState extends State<StudentHomeScreen> {
                     ),
                   ],
                 ),
-                const SizedBox(height: 1),
-
+                const SizedBox(height: 32), // Tambah spasi
                 // Mata Pelajaran Section (DINAMIS)
                 Row(
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
@@ -343,7 +333,6 @@ class _StudentHomeScreenState extends State<StudentHomeScreen> {
                     ),
                     TextButton(
                       onPressed: () {
-                        // Navigasi ke halaman daftar materi siswa
                         Navigator.push(
                           context,
                           MaterialPageRoute(
@@ -360,19 +349,6 @@ class _StudentHomeScreenState extends State<StudentHomeScreen> {
                 _buildSubjectSection(userKelas),
                 const SizedBox(height: 32),
 
-                // ===== PERUBAHAN DI SINI =====
-                // --- Bagian Tugas Mendatang Dihapus ---
-                // Text(
-                //   'Tugas Mendatang',
-                //   style: Theme.of(
-                //     context,
-                //   ).textTheme.titleLarge?.copyWith(fontWeight: FontWeight.bold),
-                // ),
-                // const SizedBox(height: 16),
-                // _buildUpcomingTaskSection(userKelas),
-                // const SizedBox(height: 32),
-                // ===== AKHIR PERUBAHAN =====
-
                 // BAGIAN PENGUMUMAN
                 Text(
                   'Pengumuman Terbaru',
@@ -381,7 +357,10 @@ class _StudentHomeScreenState extends State<StudentHomeScreen> {
                   ).textTheme.titleLarge?.copyWith(fontWeight: FontWeight.bold),
                 ),
                 const SizedBox(height: 16),
-                _buildAnnouncementSection(userKelas),
+                _buildAnnouncementSection(
+                  userKelas,
+                ), // Panggil fungsi pengumuman
+                const SizedBox(height: 80), // Jarak di akhir
               ],
             ),
           );
@@ -392,28 +371,23 @@ class _StudentHomeScreenState extends State<StudentHomeScreen> {
 
   // --- WIDGET HELPER ---
 
-  // ===== PERBAIKAN DI SINI =====
   Widget _buildStatCard(
     String title,
     String value,
     IconData icon,
     Color color,
   ) {
-    // --- PERBAIKAN 1: Ambil theme ---
     final theme = Theme.of(context);
+    final subtitleColor = theme.textTheme.bodySmall?.color?.withAlpha(
+      (255 * 0.7).round(),
+    ); // Ganti withOpacity
 
     return Card(
-      // --- PERBAIKAN 2: Tentukan warna kartu secara eksplisit ---
-      // Ini akan memastikan kartu memiliki warna latar belakang
-      // yang benar di mode gelap (biasanya sedikit lebih terang
-      // dari scaffold/latar belakang utama)
       color: theme.cardColor,
-      // --- AKHIR PERBAIKAN WARNA KARTU ---
       elevation: 2.0,
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12.0)),
       child: Padding(
         padding: const EdgeInsets.all(16.0),
-        // Ini adalah perbaikan dari error overflow sebelumnya
         child: SingleChildScrollView(
           physics: const NeverScrollableScrollPhysics(),
           child: Column(
@@ -425,14 +399,7 @@ class _StudentHomeScreenState extends State<StudentHomeScreen> {
                 children: [
                   Text(
                     title,
-                    // --- PERBAIKAN 3: Gunakan warna teks dari theme ---
-                    style: TextStyle(
-                      fontSize: 14,
-                      // Gunakan warna teks sekunder dari tema agar
-                      // terlihat jelas di mode terang dan gelap
-                      color: theme.textTheme.bodySmall?.color?.withOpacity(0.7),
-                    ),
-                    // --- AKHIR PERBAIKAN TEKS ---
+                    style: TextStyle(fontSize: 14, color: subtitleColor),
                   ),
                   Icon(icon, size: 28, color: color),
                 ],
@@ -452,7 +419,6 @@ class _StudentHomeScreenState extends State<StudentHomeScreen> {
       ),
     );
   }
-  // ===== AKHIR PERBAIKAN =====
 
   Widget _buildSubjectCard(
     String subject,
@@ -461,7 +427,9 @@ class _StudentHomeScreenState extends State<StudentHomeScreen> {
     IconData icon,
     Color color,
   ) {
+    final theme = Theme.of(context); // Ambil theme
     return Card(
+      color: theme.cardColor, // Gunakan cardColor
       elevation: 2.0,
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12.0)),
       child: Padding(
@@ -472,7 +440,9 @@ class _StudentHomeScreenState extends State<StudentHomeScreen> {
               width: 48,
               height: 48,
               decoration: BoxDecoration(
-                color: color.withOpacity(0.1),
+                color: color.withAlpha(
+                  (255 * 0.1).round(),
+                ), // Ganti withOpacity
                 borderRadius: BorderRadius.circular(12.0),
               ),
               child: Icon(icon, color: color, size: 24),
@@ -484,15 +454,26 @@ class _StudentHomeScreenState extends State<StudentHomeScreen> {
                 children: [
                   Text(
                     subject,
-                    style: const TextStyle(
+                    style: TextStyle(
+                      // Gunakan TextStyle eksplisit
                       fontSize: 16,
                       fontWeight: FontWeight.bold,
+                      color: theme
+                          .textTheme
+                          .bodyLarge
+                          ?.color, // Warna teks dari theme
                     ),
                   ),
                   const SizedBox(height: 4),
                   Text(
                     progress,
-                    style: TextStyle(fontSize: 12, color: Colors.grey.shade600),
+                    style: TextStyle(
+                      fontSize: 12,
+                      // Gunakan warna teks sekunder dari theme
+                      color: theme.textTheme.bodySmall?.color?.withAlpha(
+                        (255 * 0.7).round(),
+                      ),
+                    ),
                   ),
                   if (progressValue != null) ...[
                     const SizedBox(height: 8),
@@ -512,52 +493,6 @@ class _StudentHomeScreenState extends State<StudentHomeScreen> {
     );
   }
 
-  // ===== PERUBAHAN DI SINI =====
-  // Fungsi ini tidak lagi dipanggil, jadi bisa dihapus
-  // atau dikomentari agar tidak memakan tempat.
-  /*
-  Widget _buildUpcomingTask(
-    String title,
-    String subject,
-    String deadline,
-    Color color,
-    String taskId,
-    Map<String, dynamic> taskData,
-  ) {
-    return Card(
-      elevation: 2.0,
-      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12.0)),
-      child: ListTile(
-        contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-        leading: Container(
-          padding: const EdgeInsets.all(10),
-          decoration: BoxDecoration(
-            color: color.withOpacity(0.1),
-            borderRadius: BorderRadius.circular(8.0),
-          ),
-          child: Icon(Icons.calendar_today_outlined, color: color, size: 22),
-        ),
-        title: Text(title, style: const TextStyle(fontWeight: FontWeight.bold)),
-        subtitle: Text(
-          '$subject • $deadline',
-          style: TextStyle(fontSize: 12, color: Colors.grey.shade600),
-        ),
-        trailing: Icon(Icons.chevron_right, color: Colors.grey.shade400),
-        onTap: () {
-          Navigator.push(
-            context,
-            MaterialPageRoute(
-              builder: (context) =>
-                  TaskDetailScreen(taskId: taskId, taskData: taskData),
-            ),
-          );
-        },
-      ),
-    );
-  }
-  */
-  // ===== AKHIR PERUBAHAN =====
-
   // --- METHOD BARU UNTUK BAGIAN MATA PELAJARAN (DINAMIS) ---
   Widget _buildSubjectSection(String? userKelas) {
     return StreamBuilder<QuerySnapshot>(
@@ -572,14 +507,12 @@ class _StudentHomeScreenState extends State<StudentHomeScreen> {
         if (!snapshot.hasData || snapshot.data!.docs.isEmpty) {
           return const Center(
             child: Padding(
-              // Beri padding agar tidak terlalu mepet
               padding: EdgeInsets.symmetric(vertical: 16.0),
               child: Text('Belum ada mata pelajaran.'),
             ),
           );
         }
 
-        // Ekstrak mata pelajaran unik
         final subjects = <String>{};
         for (var doc in snapshot.data!.docs) {
           final data = doc.data() as Map<String, dynamic>;
@@ -592,14 +525,12 @@ class _StudentHomeScreenState extends State<StudentHomeScreen> {
         if (subjects.isEmpty) {
           return const Center(
             child: Padding(
-              // Beri padding agar tidak terlalu mepet
               padding: EdgeInsets.symmetric(vertical: 16.0),
               child: Text('Belum ada mata pelajaran.'),
             ),
           );
         }
 
-        // Map untuk ikon dan warna
         final subjectStyles = {
           'Informatika': {
             'icon': Icons.laptop_chromebook_outlined,
@@ -631,7 +562,6 @@ class _StudentHomeScreenState extends State<StudentHomeScreen> {
             final style =
                 subjectStyles[subjectName] ?? subjectStyles['Default']!;
 
-            // Hitung jumlah modul
             final moduleCount = snapshot.data!.docs.where((doc) {
               final data = doc.data() as Map<String, dynamic>;
               return (data['mataPelajaran'] as String?) == subjectName;
@@ -653,107 +583,19 @@ class _StudentHomeScreenState extends State<StudentHomeScreen> {
     );
   }
 
-  // ===== PERUBAHAN DI SINI =====
-  // Fungsi ini tidak lagi dipanggil, jadi bisa dihapus
-  // atau dikomentari agar tidak memakan tempat.
-  /*
-  // --- METHOD BARU UNTUK TUGAS MENDATANG (DINAMIS) ---
-  Widget _buildUpcomingTaskSection(String? userKelas) {
-    return StreamBuilder<QuerySnapshot>(
-      stream: FirebaseFirestore.instance
-          .collection('tugas')
-          .where('untukKelas', isEqualTo: userKelas)
-          .where(
-            'tenggatWaktu',
-            isGreaterThanOrEqualTo: Timestamp.now(),
-          ) // Hanya tugas mendatang
-          .orderBy('tenggatWaktu', descending: false) // Terdekat dulu
-          .limit(3) // Ambil 3 teratas
-          .snapshots(),
-      builder: (context, snapshot) {
-        if (snapshot.connectionState == ConnectionState.waiting) {
-          return const Center(child: CustomLoadingIndicator());
-        }
-        if (!snapshot.hasData || snapshot.data!.docs.isEmpty) {
-          return const Center(
-            child: Padding(
-              padding: EdgeInsets.symmetric(vertical: 16.0),
-              child: Text('Tidak ada tugas mendatang.'),
-            ),
-          );
-        }
-        if (snapshot.hasError) {
-          return const Center(
-            child: Text(
-              'Gagal memuat tugas.',
-              style: TextStyle(color: Colors.red),
-            ),
-          );
-        }
-
-        return ListView.builder(
-          shrinkWrap: true,
-          physics: const NeverScrollableScrollPhysics(),
-          itemCount: snapshot.data!.docs.length,
-          itemBuilder: (context, index) {
-            var taskDoc = snapshot.data!.docs[index];
-            var taskData = taskDoc.data() as Map<String, dynamic>;
-
-            final String judul = taskData['judul'] ?? 'Tanpa Judul';
-            final String mapel = taskData['mataPelajaran'] ?? 'Mapel';
-            final Timestamp tenggatTimestamp =
-                taskData['tenggatWaktu'] as Timestamp? ?? Timestamp.now();
-
-            // Logika Teks Deadline
-            final DateTime tenggatWaktu = tenggatTimestamp.toDate();
-            final now = DateTime.now();
-            final difference = tenggatWaktu.difference(now);
-            String deadlineText;
-            Color deadlineColor = Colors.amber.shade600;
-
-            if (difference.inDays == 0 && tenggatWaktu.day == now.day) {
-              deadlineText = 'Batas: Hari ini!';
-              deadlineColor = Colors.red.shade400;
-            } else if (difference.inDays == 0 &&
-                tenggatWaktu.day == now.add(const Duration(days: 1)).day) {
-              deadlineText = 'Batas: Besok!';
-              deadlineColor = Colors.red.shade400;
-            } else if (difference.inDays >= 1) {
-              deadlineText = 'Batas: ${difference.inDays} hari lagi';
-              deadlineColor = Colors.green.shade600;
-            } else if (difference.inHours >= 1) {
-              deadlineText = 'Batas: ${difference.inHours} jam lagi';
-              deadlineColor = Colors.amber.shade600;
-            } else {
-              deadlineText = 'Batas: Segera';
-              deadlineColor = Colors.red.shade400;
-            }
-
-            return Padding(
-              padding: const EdgeInsets.only(bottom: 12.0),
-              child: _buildUpcomingTask(
-                judul,
-                mapel,
-                deadlineText,
-                deadlineColor,
-                taskDoc.id,
-                taskData,
-              ),
-            );
-          },
-        );
-      },
-    );
-  }
-  */
-  // ===== AKHIR PERUBAHAN =====
-
   // --- METHOD BARU UNTUK BAGIAN PENGUMUMAN ---
   Widget _buildAnnouncementSection(String? userKelas) {
+    final theme = Theme.of(context); // Ambil theme di sini
     return StreamBuilder<QuerySnapshot>(
       stream: FirebaseFirestore.instance
           .collection('pengumuman')
-          .where('untukKelas', whereIn: [userKelas ?? '', 'Semua Kelas'])
+          // ================== PERUBAHAN QUERY UTAMA ==================
+          .where(
+            'untukKelas',
+            // Gunakan arrayContainsAny
+            arrayContainsAny: [userKelas ?? '', 'Semua Kelas'],
+          )
+          // =========================================================
           .orderBy('dibuatPada', descending: true)
           .limit(5)
           .snapshots(),
@@ -766,15 +608,18 @@ class _StudentHomeScreenState extends State<StudentHomeScreen> {
             child: Text(
               'Belum ada pengumuman untuk kelas ${userKelas ?? 'Anda'}.',
               style: TextStyle(
-                color: Theme.of(
-                  context,
-                ).textTheme.bodySmall?.color?.withOpacity(0.7),
+                // Gunakan warna dari theme
+                color: theme.textTheme.bodySmall?.color?.withAlpha(
+                  (255 * 0.7).round(),
+                ),
               ),
             ),
           );
         }
         if (snapshot.hasError) {
-          print("Error loading announcements: ${snapshot.error}");
+          debugPrint(
+            "Error loading announcements: ${snapshot.error}",
+          ); // Ganti print
           return const Center(
             child: Text(
               'Gagal memuat pengumuman.',
@@ -793,12 +638,34 @@ class _StudentHomeScreenState extends State<StudentHomeScreen> {
 
             Timestamp timestamp = data['dibuatPada'] ?? Timestamp.now();
 
+            // ================== LOGIKA KONVERSI DATA ==================
+            // Sama seperti di guru_home_screen
+            List<String> untukKelasList;
+            final dataKelas = data['untukKelas'];
+
+            if (dataKelas is String) {
+              // Jika data lama (String), ubah jadi List
+              untukKelasList = [dataKelas];
+            } else if (dataKelas is List) {
+              // Jika data baru (List), pastikan tipenya List<String>
+              untukKelasList = List<String>.from(
+                dataKelas.map((e) => e.toString()),
+              );
+            } else {
+              // Fallback
+              untukKelasList = ['Tidak diketahui'];
+            }
+            // ==========================================================
+
             return AnnouncementCard(
               judul: data['judul'] ?? 'Tanpa Judul',
               isi: data['isi'] ?? 'Tidak ada isi.',
               dibuatPada: timestamp,
               dibuatOlehUid: data['dibuatOlehUid'] ?? '',
-              untukKelas: data['untukKelas'] ?? 'Tidak diketahui',
+              // ================== PENGIRIMAN DATA BARU ==================
+              // Kirim data yang sudah jadi List<String>
+              untukKelas: untukKelasList,
+              // ==========================================================
             );
           },
         );

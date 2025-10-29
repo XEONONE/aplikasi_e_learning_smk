@@ -146,7 +146,6 @@ class _GuruProfileScreenState extends State<GuruProfileScreen> {
                       icon: Icons.edit_outlined,
                       text: 'Edit Profil',
                       onTap: () {
-                        // PENTING: Mendorong ke EditProfileScreen
                         Navigator.push(
                           context,
                           MaterialPageRoute(
@@ -154,9 +153,8 @@ class _GuruProfileScreenState extends State<GuruProfileScreen> {
                                 EditProfileScreen(userData: user),
                           ),
                         ).then((berhasilUpdate) {
-                          // Menerima sinyal 'true' dari EditProfileScreen
                           if (berhasilUpdate == true) {
-                            _refreshUserData(); // Panggil fungsi refresh
+                            _refreshUserData();
                           }
                         });
                       },
@@ -231,6 +229,7 @@ class _GuruProfileScreenState extends State<GuruProfileScreen> {
     );
   }
 
+  // --- MODIFIKASI WIDGET INI ---
   Widget _buildProfileActionTile({
     required IconData icon,
     required String text,
@@ -240,6 +239,13 @@ class _GuruProfileScreenState extends State<GuruProfileScreen> {
     final iconColor = theme.iconTheme.color?.withOpacity(0.7);
     final textColor = theme.textTheme.bodyLarge?.color;
     final chevronColor = theme.iconTheme.color?.withOpacity(0.5);
+    // === PERBAIKAN: Ambil warna border dari tema ===
+    final borderColor = theme.inputDecorationTheme.border is OutlineInputBorder
+        ? (theme.inputDecorationTheme.border as OutlineInputBorder)
+              .borderSide
+              .color
+        : Colors.black;
+    // === AKHIR PERBAIKAN ===
 
     return InkWell(
       onTap: onTap,
@@ -247,8 +253,12 @@ class _GuruProfileScreenState extends State<GuruProfileScreen> {
       child: Container(
         padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
         decoration: BoxDecoration(
-          color: theme.cardColor.withOpacity(0.8),
+          // === PERBAIKAN: Gunakan warna latar belakang field input ===
+          color: theme.inputDecorationTheme.fillColor ?? Colors.transparent,
           borderRadius: BorderRadius.circular(10),
+          // === PERBAIKAN: Tambahkan border ===
+          border: Border.all(color: borderColor),
+          // === AKHIR PERBAIKAN ===
         ),
         child: Row(
           children: [
@@ -267,8 +277,9 @@ class _GuruProfileScreenState extends State<GuruProfileScreen> {
     );
   }
 }
+// --- AKHIR MODIFIKASI ---
 
-// --- Widget GuruTaskManagementScreen (Fix: Pastikan kelas ada) ---
+// --- Widget GuruTaskManagementScreen (TETAP SAMA) ---
 class GuruTaskManagementScreen extends StatefulWidget {
   const GuruTaskManagementScreen({super.key});
   @override
@@ -358,7 +369,7 @@ class _GuruTaskManagementScreenState extends State<GuruTaskManagementScreen> {
   }
 }
 
-// --- CLASS DASHBOARD UTAMA (GURU DASHBOARD SCREEN) ---
+// --- CLASS DASHBOARD UTAMA (GURU DASHBOARD SCREEN - TETAP SAMA) ---
 class GuruDashboardScreen extends StatefulWidget {
   const GuruDashboardScreen({super.key});
 
@@ -368,8 +379,6 @@ class GuruDashboardScreen extends StatefulWidget {
 
 class _GuruDashboardScreenState extends State<GuruDashboardScreen> {
   int _selectedIndex = 0;
-  // ===== PERBAIKAN UTAMA: Menggunakan tipe publik State<GuruHomeScreen> =====
-  // Ini memperbaiki error 'non_type_as_type_argument'
   final GlobalKey<State<GuruHomeScreen>> _homeKey =
       GlobalKey<State<GuruHomeScreen>>();
 
@@ -385,13 +394,10 @@ class _GuruDashboardScreenState extends State<GuruDashboardScreen> {
     });
   }
 
-  // Daftar halaman
   @override
   Widget build(BuildContext context) {
     final List<Widget> _pages = <Widget>[
-      // --- Halaman Beranda (Indeks 0) ---
-      GuruHomeScreen(key: _homeKey), // Menggunakan key
-      // --- Halaman Materi (Indeks 1) ---
+      GuruHomeScreen(key: _homeKey),
       Scaffold(
         appBar: AppBar(
           title: Builder(
@@ -439,17 +445,11 @@ class _GuruDashboardScreenState extends State<GuruDashboardScreen> {
           },
         ),
       ),
-      // --- Halaman Tugas (Indeks 2) ---
       const GuruTaskManagementScreen(),
-      // --- Halaman Profil (Indeks 3) ---
-      // Meneruskan Callback ke GuruProfileScreen
       GuruProfileScreen(
         onProfileUpdated: () {
-          // ===== PENTING: MENGAKSES FUNGSI REFRESH DENGAN CASTING DINAMIS =====
           final homeState = _homeKey.currentState;
           if (homeState != null && homeState.mounted) {
-            // Kita harus menggunakan 'dynamic' untuk memanggil method publik
-            // 'refreshUserData' dari state privat '_GuruHomeScreenState'
             (homeState as dynamic).refreshUserData();
           }
         },

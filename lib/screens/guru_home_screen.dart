@@ -109,7 +109,12 @@ class _GuruHomeScreenState extends State<GuruHomeScreen> {
     Color iconColor,
   ) {
     final theme = Theme.of(context);
-    final subtitleColor = theme.textTheme.bodyMedium?.color?.withOpacity(0.7);
+    // ================== PERBAIKAN LINT ==================
+    // Mengganti withOpacity dengan withAlpha
+    final subtitleColor = theme.textTheme.bodyMedium?.color?.withAlpha(
+      (255 * 0.7).round(),
+    );
+    // ====================================================
 
     return Expanded(
       child: Card(
@@ -157,14 +162,21 @@ class _GuruHomeScreenState extends State<GuruHomeScreen> {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
-    final subtitleColor = theme.textTheme.bodyMedium?.color?.withOpacity(0.7);
+    // ================== PERBAIKAN LINT ==================
+    // Mengganti withOpacity dengan withAlpha
+    final subtitleColor = theme.textTheme.bodyMedium?.color?.withAlpha(
+      (255 * 0.7).round(),
+    );
+    // ====================================================
 
     return Scaffold(
       body: FutureBuilder<UserModel?>(
         future: _userFuture, // PENTING: menggunakan Future ini
         builder: (context, userSnapshot) {
-          if (userSnapshot.connectionState == ConnectionState.waiting &&
-              _userFuture != null) {
+          // ================== PERBAIKAN LINT ==================
+          // Menghapus '&& _userFuture != null' karena tidak perlu
+          if (userSnapshot.connectionState == ConnectionState.waiting) {
+            // ====================================================
             // Tampilkan loading hanya jika ini bukan hasil dari refresh cepat
             return const Center(child: CircularProgressIndicator());
           }
@@ -189,7 +201,11 @@ class _GuruHomeScreenState extends State<GuruHomeScreen> {
                       radius: 24,
                       backgroundColor: theme.brightness == Brightness.dark
                           ? Colors.grey[700]
-                          : theme.colorScheme.primary.withOpacity(0.1),
+                          // ================== PERBAIKAN LINT ==================
+                          : theme.colorScheme.primary.withAlpha(
+                              (255 * 0.1).round(),
+                            ),
+                      // ====================================================
                       child: Text(
                         initial,
                         style: TextStyle(
@@ -244,7 +260,7 @@ class _GuruHomeScreenState extends State<GuruHomeScreen> {
                             user.mengajarKelas!.isNotEmpty) ...[
                           const SizedBox(height: 8),
                           Text(
-                            'Mengajar: ${user.mengajarKelas!.join(', ')}',
+                            'Anda Mengajar di Kelas: ${user.mengajarKelas!.join(', ')}',
                             style: theme.textTheme.bodyMedium?.copyWith(
                               color: subtitleColor,
                             ),
@@ -291,10 +307,15 @@ class _GuruHomeScreenState extends State<GuruHomeScreen> {
                 StreamBuilder<QuerySnapshot>(
                   stream: FirebaseFirestore.instance
                       .collection('pengumuman')
+                      // ================== PERUBAHAN QUERY UTAMA ==================
                       .where(
                         'untukKelas',
-                        whereIn: [...?user.mengajarKelas, 'Semua Kelas'],
+                        arrayContainsAny: [
+                          ...?user.mengajarKelas,
+                          'Semua Kelas',
+                        ],
                       )
+                      // =========================================================
                       .orderBy('dibuatPada', descending: true)
                       .limit(5)
                       .snapshots(),
@@ -307,14 +328,22 @@ class _GuruHomeScreenState extends State<GuruHomeScreen> {
                         child: Text(
                           'Belum ada pengumuman.',
                           style: TextStyle(
-                            color: theme.textTheme.bodyMedium?.color
-                                ?.withOpacity(0.7),
+                            // ================== PERBAIKAN LINT ==================
+                            color: theme.textTheme.bodyMedium?.color?.withAlpha(
+                              (255 * 0.7).round(),
+                            ),
+                            // ====================================================
                           ),
                         ),
                       );
                     }
                     if (snapshot.hasError) {
-                      print("Error loading announcements: ${snapshot.error}");
+                      // ================== PERBAIKAN LINT ==================
+                      // Mengganti 'print' dengan 'debugPrint'
+                      debugPrint(
+                        "Error loading announcements: ${snapshot.error}",
+                      );
+                      // ====================================================
                       return const Center(
                         child: Text(
                           'Gagal memuat pengumuman.',
@@ -326,12 +355,38 @@ class _GuruHomeScreenState extends State<GuruHomeScreen> {
                     return Column(
                       children: snapshot.data!.docs.map((doc) {
                         var data = doc.data() as Map<String, dynamic>;
+
+                        // ================== LOGIKA KONVERSI DATA ==================
+                        // Ini adalah kunci agar bisa dikirim ke AnnouncementCard
+                        List<String> untukKelasList;
+                        final dataKelas = data['untukKelas'];
+
+                        if (dataKelas is String) {
+                          // Jika data lama (String), ubah jadi List
+                          untukKelasList = [dataKelas];
+                        } else if (dataKelas is List) {
+                          // Jika data baru (List), pastikan tipenya List<String>
+                          untukKelasList = List<String>.from(
+                            dataKelas.map((e) => e.toString()),
+                          );
+                        } else {
+                          // Fallback
+                          untukKelasList = ['Tidak diketahui'];
+                        }
+                        // ==========================================================
+
                         return AnnouncementCard(
                           judul: data['judul'] ?? 'Tanpa Judul',
                           isi: data['isi'] ?? 'Tidak ada isi.',
                           dibuatPada: data['dibuatPada'] ?? Timestamp.now(),
                           dibuatOlehUid: data['dibuatOlehUid'] ?? '',
-                          untukKelas: data['untukKelas'] ?? 'Tidak diketahui',
+
+                          // ================== PENGIRIMAN DATA BARU ==================
+                          // Sekarang mengirim List<String> ke widget yang sudah
+                          // siap menerimanya (File 1).
+                          untukKelas: untukKelasList,
+
+                          // ==========================================================
                           isGuruView: true,
                           onEdit: () {
                             Navigator.push(

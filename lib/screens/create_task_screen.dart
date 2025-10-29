@@ -5,6 +5,7 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
+import '../widgets/custom_loading_indicator.dart'; // Impor loading indicator
 
 class CreateTaskScreen extends StatefulWidget {
   const CreateTaskScreen({super.key});
@@ -68,7 +69,6 @@ class _CreateTaskScreenState extends State<CreateTaskScreen> {
     }
   }
 
-  // --- FUNGSI BARU UNTUK MEMBUAT NOTIFIKASI ---
   Future<void> _createNotification(
     String judulTugas,
     String mapel,
@@ -76,29 +76,23 @@ class _CreateTaskScreenState extends State<CreateTaskScreen> {
     DateTime tenggatWaktu,
   ) async {
     try {
-      // Format tanggal tenggat untuk subtitle
       final String formattedTenggat = DateFormat(
         'd MMM, HH:mm',
         'id_ID',
       ).format(tenggatWaktu);
 
       await FirebaseFirestore.instance.collection('notifications').add({
-        'type': 'new_task', // Tipe notifikasi tugas baru
+        'type': 'new_task',
         'title': 'Tugas Baru: $judulTugas',
         'subtitle': 'Mapel: $mapel - Tenggat: $formattedTenggat',
         'timestamp': Timestamp.now(),
-        'targetAudience': [
-          'kelas_$kelas',
-        ], // Targetnya adalah kelas yang dipilih
-        // --- TAMBAHAN BARU ---
-        'isRead': false, // Tandai sebagai belum dibaca
-        // --- AKHIR TAMBAHAN BARU ---
+        'targetAudience': ['kelas_$kelas'],
+        'isRead': false,
       });
     } catch (e) {
       print('Gagal membuat notifikasi: $e');
     }
   }
-  // --- AKHIR FUNGSI BARU ---
 
   Future<void> _submitTugas(String guruId, String guruNama) async {
     if (_formKey.currentState!.validate() &&
@@ -107,7 +101,6 @@ class _CreateTaskScreenState extends State<CreateTaskScreen> {
         _selectedKelas != null) {
       setState(() => _isLoading = true);
 
-      // Mengambil data sebelum proses async
       final String judul = _judulController.text.trim();
       final String mapel = _mapelController.text.trim();
       final String kelas = _selectedKelas!;
@@ -137,9 +130,7 @@ class _CreateTaskScreenState extends State<CreateTaskScreen> {
           'guruNama': guruNama,
         });
 
-        // --- PANGGIL FUNGSI NOTIFIKASI SETELAH SUKSES ---
         await _createNotification(judul, mapel, kelas, tenggatWaktu);
-        // --- AKHIR PANGGILAN FUNGSI ---
 
         if (!mounted) return;
         ScaffoldMessenger.of(context).showSnackBar(
@@ -183,10 +174,15 @@ class _CreateTaskScreenState extends State<CreateTaskScreen> {
 
   @override
   Widget build(BuildContext context) {
-    final fieldColor =
-        Theme.of(context).inputDecorationTheme.fillColor ??
-        Colors.grey.shade200;
-    final iconColor = Theme.of(context).iconTheme.color ?? Colors.grey.shade700;
+    // === PERBAIKAN: Ambil warna dari tema ===
+    final theme = Theme.of(context);
+    // Kita gunakan `inputDecorationTheme` untuk konsistensi
+    final inputDecorationTheme = theme.inputDecorationTheme;
+    // Ambil warna border jika ada, jika tidak, default ke hitam
+    final borderColor = inputDecorationTheme.border is OutlineInputBorder
+        ? (inputDecorationTheme.border as OutlineInputBorder).borderSide.color
+        : Colors.black;
+    // === AKHIR PERBAIKAN ===
 
     return Scaffold(
       appBar: AppBar(title: const Text('Buat Tugas Baru')),
@@ -194,7 +190,9 @@ class _CreateTaskScreenState extends State<CreateTaskScreen> {
         future: _guruFuture,
         builder: (context, snapshot) {
           if (snapshot.connectionState == ConnectionState.waiting) {
-            return const Center(child: CircularProgressIndicator());
+            return const Center(
+              child: CustomLoadingIndicator(),
+            ); // Gunakan loading custom
           }
           if (!snapshot.hasData ||
               snapshot.data == null ||
@@ -215,47 +213,42 @@ class _CreateTaskScreenState extends State<CreateTaskScreen> {
                     controller: _judulController,
                     decoration: InputDecoration(
                       labelText: 'Judul Tugas',
-                      filled: true,
-                      fillColor: fieldColor.withAlpha(128), // semi-transparan
+                      // === PERBAIKAN: Tambahkan OutlineInputBorder ===
                       border: OutlineInputBorder(
-                        borderRadius: BorderRadius.circular(10),
-                        borderSide: BorderSide.none,
+                        borderSide: BorderSide(color: borderColor),
                       ),
+                      // ===========================================
                     ),
                     validator: (value) => (value == null || value.isEmpty)
                         ? 'Judul tidak boleh kosong'
                         : null,
                   ),
                   const SizedBox(height: 16),
-
                   TextFormField(
                     controller: _mapelController,
                     decoration: InputDecoration(
                       labelText: 'Mata Pelajaran',
-                      filled: true,
-                      fillColor: fieldColor.withAlpha(128),
+                      // === PERBAIKAN: Tambahkan OutlineInputBorder ===
                       border: OutlineInputBorder(
-                        borderRadius: BorderRadius.circular(10),
-                        borderSide: BorderSide.none,
+                        borderSide: BorderSide(color: borderColor),
                       ),
+                      // ===========================================
                     ),
                     validator: (value) => (value == null || value.isEmpty)
                         ? 'Mata pelajaran tidak boleh kosong'
                         : null,
                   ),
                   const SizedBox(height: 16),
-
                   TextFormField(
                     controller: _deskripsiController,
                     decoration: InputDecoration(
                       labelText: 'Deskripsi',
                       hintText: 'Jelaskan detail tugas di sini...',
-                      filled: true,
-                      fillColor: fieldColor.withAlpha(128),
+                      // === PERBAIKAN: Tambahkan OutlineInputBorder ===
                       border: OutlineInputBorder(
-                        borderRadius: BorderRadius.circular(10),
-                        borderSide: BorderSide.none,
+                        borderSide: BorderSide(color: borderColor),
                       ),
+                      // ===========================================
                     ),
                     maxLines: 4,
                     validator: (value) => (value == null || value.isEmpty)
@@ -263,17 +256,15 @@ class _CreateTaskScreenState extends State<CreateTaskScreen> {
                         : null,
                   ),
                   const SizedBox(height: 16),
-
                   DropdownButtonFormField<String>(
-                    initialValue: _selectedKelas,
+                    value: _selectedKelas, // Gunakan value, bukan initialValue
                     decoration: InputDecoration(
                       labelText: 'Untuk Kelas',
-                      filled: true,
-                      fillColor: fieldColor.withAlpha(128),
+                      // === PERBAIKAN: Tambahkan OutlineInputBorder ===
                       border: OutlineInputBorder(
-                        borderRadius: BorderRadius.circular(10),
-                        borderSide: BorderSide.none,
+                        borderSide: BorderSide(color: borderColor),
                       ),
+                      // ===========================================
                     ),
                     items: kelasDiajar
                         .map(
@@ -288,48 +279,48 @@ class _CreateTaskScreenState extends State<CreateTaskScreen> {
                     validator: (value) => value == null ? 'Pilih kelas' : null,
                   ),
                   const SizedBox(height: 16),
-
                   ListTile(
-                    contentPadding: EdgeInsets.zero,
-                    leading: Icon(Icons.calendar_today, color: iconColor),
+                    contentPadding: const EdgeInsets.symmetric(
+                      horizontal: 12.0,
+                    ), // Beri padding
+                    leading: const Icon(Icons.calendar_today),
                     title: Text(
                       _selectedDate == null || _selectedTime == null
                           ? 'Pilih Tenggat Waktu'
                           : 'Tenggat: ${DateFormat('d MMM yyyy, HH:mm', 'id_ID').format(DateTime(_selectedDate!.year, _selectedDate!.month, _selectedDate!.day, _selectedTime!.hour, _selectedTime!.minute))}',
                     ),
-                    trailing: const Icon(Icons.edit),
+                    trailing: const Icon(Icons.edit_outlined), // Ganti ikon
                     onTap: () => _selectDateTime(context),
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(10),
-                      side: BorderSide(color: Colors.grey.shade700),
+                    shape: OutlineInputBorder(
+                      // Gunakan OutlineInputBorder
+                      borderRadius: BorderRadius.circular(
+                        4,
+                      ), // Sesuaikan radius
+                      borderSide: BorderSide(
+                        color: borderColor,
+                      ), // Gunakan warna border
                     ),
-                    tileColor: fieldColor.withAlpha(128),
                   ),
                   const SizedBox(height: 16),
-
                   TextFormField(
                     controller: _linkController,
                     decoration: InputDecoration(
-                      labelText: 'Salin link web (Opsional)', // Ubah label
+                      labelText: 'Salin link web (Opsional)',
                       hintText: 'https://...',
-                      filled: true,
-                      fillColor: fieldColor.withAlpha(128),
+                      // === PERBAIKAN: Tambahkan OutlineInputBorder ===
                       border: OutlineInputBorder(
-                        borderRadius: BorderRadius.circular(10),
-                        borderSide: BorderSide.none,
+                        borderSide: BorderSide(color: borderColor),
                       ),
-                      prefixIcon: Icon(
-                        Icons.link,
-                        color: iconColor,
-                      ), // Ubah ikon
+                      // ===========================================
+                      prefixIcon: const Icon(Icons.link),
                     ),
-                    keyboardType: TextInputType.url, // Keyboard tipe URL
+                    keyboardType: TextInputType.url,
                   ),
-
                   const SizedBox(height: 32),
-
                   _isLoading
-                      ? const Center(child: CircularProgressIndicator())
+                      ? const Center(
+                          child: CustomLoadingIndicator(),
+                        ) // Gunakan loading custom
                       : ElevatedButton.icon(
                           icon: const Icon(Icons.publish),
                           label: const Text('Terbitkan Tugas'),

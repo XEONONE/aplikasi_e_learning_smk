@@ -139,7 +139,7 @@ class _GuruMateriListScreenState extends State<GuruMateriListScreen> {
             if (!snapshot.hasData || snapshot.data!.docs.isEmpty) {
               return Center(
                 child: Text(
-                  'Anda belum mengunggah materi.',
+                  'Belum Ada Materi Saat Ini',
                   style: theme.textTheme.bodyMedium,
                 ),
               );

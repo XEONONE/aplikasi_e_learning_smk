@@ -267,14 +267,15 @@ class _StudentHomeScreenState extends State<StudentHomeScreen> {
                 ),
                 const SizedBox(height: 24),
 
-                // Stats Grid (DINAMIS)
+                // Stats Grid (DINAMIS DENGAN PERBAIKAN)
                 GridView.count(
                   crossAxisCount: 2,
                   crossAxisSpacing: 16.0,
                   mainAxisSpacing: 16.0,
                   shrinkWrap: true,
                   physics: const NeverScrollableScrollPhysics(),
-                  childAspectRatio: 5.0, // Kembalikan ke 2.0
+                  // PERBAIKAN OVERFLOW: Rasio diubah agar card lebih tinggi
+                  childAspectRatio: 1.5,
                   children: [
                     // --- KARTU STAT MATERI (DINAMIS) ---
                     StreamBuilder<QuerySnapshot>(
@@ -285,13 +286,16 @@ class _StudentHomeScreenState extends State<StudentHomeScreen> {
                       builder: (context, snapshot) {
                         String materiCount = '...';
                         if (snapshot.hasData) {
+                          // ======================================================
+                          // INI AKAN MENGHASILKAN "0" JIKA TIDAK ADA DOKUMEN
                           materiCount = snapshot.data!.docs.length.toString();
+                          // ======================================================
                         } else if (snapshot.hasError) {
                           materiCount = 'Err';
                         }
                         return _buildStatCard(
                           'Total Materi',
-                          materiCount,
+                          materiCount, // Mengirim "0" (atau jumlah lain) ke fungsi build
                           Icons.book_outlined,
                           Colors.green.shade400,
                         );
@@ -306,13 +310,16 @@ class _StudentHomeScreenState extends State<StudentHomeScreen> {
                       builder: (context, snapshot) {
                         String tugasCount = '...';
                         if (snapshot.hasData) {
+                          // ======================================================
+                          // INI AKAN MENGHASILKAN "0" JIKA TIDAK ADA DOKUMEN
                           tugasCount = snapshot.data!.docs.length.toString();
+                          // ======================================================
                         } else if (snapshot.hasError) {
                           tugasCount = 'Err';
                         }
                         return _buildStatCard(
                           'Total Tugas',
-                          tugasCount,
+                          tugasCount, // Mengirim "0" (atau jumlah lain) ke fungsi build
                           Icons.assignment_outlined,
                           Colors.orange.shade400,
                         );
@@ -371,9 +378,12 @@ class _StudentHomeScreenState extends State<StudentHomeScreen> {
 
   // --- WIDGET HELPER ---
 
+  // ======================================================
+  // ===== FUNGSI STAT CARD (YANG SUDAH 100% BENAR) ====
+  // ======================================================
   Widget _buildStatCard(
     String title,
-    String value,
+    String value, // <-- Variabel ini akan menerima "0"
     IconData icon,
     Color color,
   ) {
@@ -387,8 +397,10 @@ class _StudentHomeScreenState extends State<StudentHomeScreen> {
       elevation: 2.0,
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12.0)),
       child: Padding(
-        padding: const EdgeInsets.all(16.0),
+        // PERBAIKAN OVERFLOW: Padding dikecilkan
+        padding: const EdgeInsets.all(12.0),
         child: SingleChildScrollView(
+          // Ditambahkan untuk keamanan
           physics: const NeverScrollableScrollPhysics(),
           child: Column(
             mainAxisAlignment: MainAxisAlignment.center,
@@ -398,17 +410,23 @@ class _StudentHomeScreenState extends State<StudentHomeScreen> {
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
                   Text(
-                    title,
-                    style: TextStyle(fontSize: 14, color: subtitleColor),
+                    title, // Ini akan menampilkan "Total Materi"
+                    // PERBAIKAN OVERFLOW: Font dikecilkan
+                    style: TextStyle(fontSize: 13, color: subtitleColor),
                   ),
-                  Icon(icon, size: 28, color: color),
+                  // PERBAIKAN OVERFLOW: Ikon dikecilkan
+                  Icon(icon, size: 24, color: color),
                 ],
               ),
-              const SizedBox(height: 8),
+              // PERBAIKAN OVERFLOW: Spasi dikurangi
+              const SizedBox(height: 4),
               Text(
-                value,
+                // ==================================================
+                value, // <-- INI YANG BENAR: Menampilkan variabel 'value'
+                // ==================================================
                 style: TextStyle(
-                  fontSize: 22,
+                  // PERBAIKAN OVERFLOW: Font dikecilkan
+                  fontSize: 20,
                   fontWeight: FontWeight.bold,
                   color: color,
                 ),
@@ -419,6 +437,9 @@ class _StudentHomeScreenState extends State<StudentHomeScreen> {
       ),
     );
   }
+  // ============================================
+  // ========= AKHIR FUNGSI STAT CARD ===========
+  // ============================================
 
   Widget _buildSubjectCard(
     String subject,

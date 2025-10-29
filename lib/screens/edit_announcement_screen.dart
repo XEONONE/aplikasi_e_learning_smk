@@ -1,3 +1,5 @@
+// lib/screens/edit_announcement_screen.dart
+
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 
@@ -22,15 +24,22 @@ class _EditAnnouncementScreenState extends State<EditAnnouncementScreen> {
 
   bool _isLoading = false;
   List<String> _daftarKelas = [];
-  String? _selectedKelas;
+
+  List<String> _selectedKelas = [];
 
   @override
   void initState() {
     super.initState();
-    // Isi controller dengan data yang ada
     _judulController = TextEditingController(text: widget.initialData['judul']);
     _isiController = TextEditingController(text: widget.initialData['isi']);
-    _selectedKelas = widget.initialData['untukKelas'];
+
+    // Inisialisasi _selectedKelas dari String Firestore
+    final initialKelasString =
+        widget.initialData['untukKelas'] as String? ?? '';
+    _selectedKelas = initialKelasString
+        .split(', ')
+        .where((e) => e.isNotEmpty)
+        .toList();
 
     _fetchKelas();
   }
@@ -53,9 +62,97 @@ class _EditAnnouncementScreenState extends State<EditAnnouncementScreen> {
     }
   }
 
+  Future<void> _showMultiSelectDialog() async {
+    List<String> tempSelected = List.from(_selectedKelas);
+
+    final List<String>? results = await showDialog<List<String>>(
+      context: context,
+      builder: (BuildContext context) {
+        return StatefulBuilder(
+          builder: (context, setStateInternal) {
+            List<String> dialogSelections = List.from(tempSelected);
+
+            return AlertDialog(
+              title: const Text('Pilih Kelas Tujuan'),
+              content: SingleChildScrollView(
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  children: _daftarKelas.map((kelas) {
+                    final isAll = kelas == 'Semua Kelas';
+                    final isSelected = dialogSelections.contains(kelas);
+                    final isAllSelected = dialogSelections.contains(
+                      'Semua Kelas',
+                    );
+
+                    final bool isEnabled = !isAllSelected || isAll;
+
+                    return CheckboxListTile(
+                      enabled: isEnabled,
+                      value: isSelected,
+                      title: Text(
+                        kelas,
+                        style: TextStyle(
+                          color: isEnabled
+                              ? Theme.of(context).textTheme.bodyLarge?.color
+                              : Colors.grey,
+                        ),
+                      ),
+                      onChanged: !isEnabled
+                          ? null
+                          : (bool? newValue) {
+                              setStateInternal(() {
+                                if (newValue == true) {
+                                  if (isAll) {
+                                    dialogSelections = ['Semua Kelas'];
+                                  } else {
+                                    dialogSelections.remove('Semua Kelas');
+                                    dialogSelections.add(kelas);
+                                  }
+                                } else {
+                                  dialogSelections.remove(kelas);
+                                }
+                                dialogSelections.sort(
+                                  (a, b) => a == 'Semua Kelas' ? -1 : 1,
+                                );
+                                tempSelected = dialogSelections;
+                              });
+                            },
+                    );
+                  }).toList(),
+                ),
+              ),
+              actions: [
+                TextButton(
+                  onPressed: () => Navigator.pop(context),
+                  child: const Text('Batal'),
+                ),
+                ElevatedButton(
+                  onPressed: () => Navigator.pop(context, tempSelected),
+                  child: const Text('Simpan'),
+                ),
+              ],
+            );
+          },
+        );
+      },
+    );
+
+    if (results != null) {
+      setState(() {
+        _selectedKelas = results;
+      });
+      _formKey.currentState?.validate();
+    }
+  }
+
   Future<void> _updateAnnouncement() async {
-    if (_formKey.currentState!.validate() && _selectedKelas != null) {
+    if (_formKey.currentState!.validate() && _selectedKelas.isNotEmpty) {
       setState(() => _isLoading = true);
+
+      final String untukKelasText = _selectedKelas.contains('Semua Kelas')
+          ? 'Semua Kelas'
+          : _selectedKelas.join(', ');
+
       try {
         await FirebaseFirestore.instance
             .collection('pengumuman')
@@ -63,7 +160,7 @@ class _EditAnnouncementScreenState extends State<EditAnnouncementScreen> {
             .update({
               'judul': _judulController.text.trim(),
               'isi': _isiController.text.trim(),
-              'untukKelas': _selectedKelas,
+              'untukKelas': untukKelasText,
             });
 
         if (!mounted) return;
@@ -82,11 +179,16 @@ class _EditAnnouncementScreenState extends State<EditAnnouncementScreen> {
         }
       }
     } else {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text('Harap lengkapi semua field dan pilih kelas.'),
-        ),
-      );
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text(
+              'Harap lengkapi semua field dan pilih minimal satu kelas.',
+            ),
+            backgroundColor: Colors.orange,
+          ),
+        );
+      }
     }
   }
 
@@ -97,8 +199,21 @@ class _EditAnnouncementScreenState extends State<EditAnnouncementScreen> {
     super.dispose();
   }
 
+  // Helper untuk menampilkan teks kelas yang dipilih
+  String get _selectedClassesText {
+    if (_selectedKelas.isEmpty) return 'Pilih kelas...';
+    if (_selectedKelas.contains('Semua Kelas')) return 'Semua Kelas';
+    if (_selectedKelas.length > 3) {
+      return '${_selectedKelas.take(3).join(', ')}... (+${_selectedKelas.length - 3} lainnya)';
+    }
+    return _selectedKelas.join(', ');
+  }
+
   @override
   Widget build(BuildContext context) {
+    // Variable untuk mengatasi masalah visibilitas teks (PERBAIKAN VISIBILITAS)
+    final Color contrastTextColor = Theme.of(context).colorScheme.onSurface;
+
     return Scaffold(
       appBar: AppBar(title: const Text('Edit Pengumuman')),
       body: SingleChildScrollView(
@@ -129,24 +244,55 @@ class _EditAnnouncementScreenState extends State<EditAnnouncementScreen> {
                     value!.isEmpty ? 'Isi tidak boleh kosong' : null,
               ),
               const SizedBox(height: 16),
-              DropdownButtonFormField<String>(
+
+              // Custom FormField untuk Multi-select (PERBAIKAN FUNGSI)
+              FormField<List<String>>(
                 initialValue: _selectedKelas,
-                hint: const Text('Tujukan ke...'),
-                items: _daftarKelas.map((String kelas) {
-                  return DropdownMenuItem<String>(
-                    value: kelas,
-                    child: Text(kelas),
-                  );
-                }).toList(),
-                onChanged: (String? newValue) {
-                  setState(() {
-                    _selectedKelas = newValue;
-                  });
-                },
                 validator: (value) =>
-                    value == null ? 'Target harus dipilih' : null,
-                decoration: const InputDecoration(border: OutlineInputBorder()),
+                    value!.isEmpty ? 'Target harus dipilih' : null,
+                builder: (FormFieldState<List<String>> state) {
+                  return InputDecorator(
+                    decoration: InputDecoration(
+                      labelText: 'Tujukan ke Kelas',
+                      hintText: 'Pilih kelas...',
+                      border: const OutlineInputBorder(),
+                      errorText: state.errorText,
+                    ),
+                    isEmpty: _selectedKelas.isEmpty,
+                    child: InkWell(
+                      onTap: () async {
+                        await _showMultiSelectDialog();
+                        state.didChange(_selectedKelas);
+                      },
+                      child: Padding(
+                        padding: const EdgeInsets.symmetric(vertical: 8.0),
+                        child: Row(
+                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                          children: [
+                            Expanded(
+                              child: Text(
+                                _selectedClassesText,
+                                style: _selectedKelas.isEmpty
+                                    ? Theme.of(
+                                        context,
+                                      ).textTheme.bodyLarge?.copyWith(
+                                        color: Theme.of(context).hintColor,
+                                      )
+                                    // Menerapkan warna teks kontras yang pasti terlihat
+                                    : Theme.of(context).textTheme.bodyLarge
+                                          ?.copyWith(color: contrastTextColor),
+                                overflow: TextOverflow.ellipsis,
+                              ),
+                            ),
+                            const Icon(Icons.arrow_drop_down),
+                          ],
+                        ),
+                      ),
+                    ),
+                  );
+                },
               ),
+
               const SizedBox(height: 24),
               _isLoading
                   ? const Center(child: CircularProgressIndicator())

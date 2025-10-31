@@ -70,7 +70,7 @@ class _LoginScreenState extends State<LoginScreen> {
                 mainAxisSize: MainAxisSize.min,
                 crossAxisAlignment: CrossAxisAlignment.stretch,
                 children: [
-                  Image.asset('assets/logo_sekolah.png', height: 90),
+                  Image.asset('assets/logo_sekolah.png', height: 150),
                   const SizedBox(height: 20),
                   const Text(
                     'PORTAL E - LEARNING',

@@ -1,164 +1,165 @@
-// lib/widgets/announcement_card.dart
-
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
-import 'package:aplikasi_e_learning_smk/services/auth_service.dart';
 
-class AnnouncementCard extends StatelessWidget {
-  final String judul;
-  final String isi;
-
-  // ================== PERUBAHAN DI SINI ==================
-  // Mengubah tipe data dari 'dynamic' menjadi 'List<String>'
-  final List<String> untukKelas;
-  // =======================================================
-
-  final Timestamp dibuatPada;
-  final String dibuatOlehUid;
-  final bool isGuruView;
+class AnnouncementCard extends StatefulWidget {
+  final DocumentSnapshot announcement;
   final VoidCallback? onEdit;
   final VoidCallback? onDelete;
+  final bool isGuru;
 
   const AnnouncementCard({
-    super.key,
-    required this.judul,
-    required this.isi,
-    required this.untukKelas,
-    required this.dibuatPada,
-    required this.dibuatOlehUid,
-    this.isGuruView = false,
+    Key? key,
+    required this.announcement,
     this.onEdit,
     this.onDelete,
-  });
+    this.isGuru = false,
+  }) : super(key: key);
+
+  @override
+  _AnnouncementCardState createState() => _AnnouncementCardState();
+}
+
+class _AnnouncementCardState extends State<AnnouncementCard> {
+  bool _isExpanded = false;
+  bool _isTextLong = false;
+  late String _fullText;
+  late String _shortText;
+  final int _maxChars = 100; // Tentukan batas karakter untuk disingkat
+
+  @override
+  void initState() {
+    super.initState();
+
+    _fullText =
+        (widget.announcement.data() as Map<String, dynamic>)['isi'] ??
+        'Tidak ada isi';
+
+    // Periksa apakah teks lebih panjang dari batas
+    if (_fullText.length > _maxChars) {
+      _isTextLong = true;
+      _shortText = _fullText.substring(0, _maxChars) + '...';
+    } else {
+      _isTextLong = false;
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
-    final theme = Theme.of(context);
-    final authService = AuthService();
-    final bool isOwner = authService.getCurrentUser()?.uid == dibuatOlehUid;
+    Map<String, dynamic> data =
+        widget.announcement.data() as Map<String, dynamic>;
+    String title = data['judul'] ?? 'Tanpa Judul';
+    Timestamp timestamp =
+        data['dibuatPada'] ?? Timestamp.now(); // Perbaikan nama field
+    String formattedDate = DateFormat(
+      'dd MMM yyyy, HH:mm',
+    ).format(timestamp.toDate());
 
-    // Format tanggal
-    final String tanggalFormatted = DateFormat(
-      'd MMMM y, HH:mm',
-      'id_ID',
-    ).format(dibuatPada.toDate());
+    // --- TAMBAHAN LOGIKA UNTUK 'UNTUK KELAS' ---
+    List<String> untukKelasList = [];
+    final dataKelas = data['untukKelas'];
 
-    // ================== PERUBAHAN DI SINI ==================
-    // Menggabungkan List menjadi satu String untuk ditampilkan
-    final String targetKelas = untukKelas.join(', ');
-    // =======================================================
+    if (dataKelas is String) {
+      // Jika data lama (String), ubah jadi List
+      untukKelasList = [dataKelas];
+    } else if (dataKelas is List) {
+      // Jika data baru (List), pastikan tipenya List<String>
+      untukKelasList = List<String>.from(dataKelas.map((e) => e.toString()));
+    } else {
+      // Fallback
+      untukKelasList = ['Tidak diketahui'];
+    }
+    String untukKelasText = untukKelasList.join(', ');
+    // --- AKHIR TAMBAHAN LOGIKA ---
 
     return Card(
-      margin: const EdgeInsets.symmetric(vertical: 8.0),
-      elevation: 2.0,
-      color: theme.cardColor,
-      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12.0)),
+      elevation: 3,
+      margin: const EdgeInsets.symmetric(vertical: 8, horizontal: 16),
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
       child: Padding(
         padding: const EdgeInsets.all(16.0),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            // Header: Judul dan Tombol Aksi (jika guru)
-            Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            Text(
+              title,
+              style: TextStyle(
+                fontSize: 18,
+                fontWeight: FontWeight.bold,
+                color: Colors.blue[800],
+              ),
+            ),
+            const SizedBox(height: 4), // Kurangi spasi sedikit
+            // --- WIDGET 'UNTUK KELAS' YANG DITAMBAHKAN KEMBALI ---
+            Text(
+              'Untuk Kelas: $untukKelasText',
+              style: TextStyle(
+                fontSize: 12,
+                fontWeight: FontWeight.w600,
+                color: Colors.grey[700],
+                fontStyle: FontStyle.italic,
+              ),
+            ),
+
+            // --- AKHIR WIDGET TAMBAHAN ---
+            const SizedBox(height: 8),
+
+            // Widget untuk menampilkan teks yang bisa diperluas
+            Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Expanded(
-                  child: Text(
-                    judul,
-                    style: theme.textTheme.titleMedium?.copyWith(
-                      fontWeight: FontWeight.bold,
-                    ),
-                  ),
+                Text(
+                  _isTextLong
+                      ? (_isExpanded ? _fullText : _shortText)
+                      : _fullText,
+                  style: const TextStyle(fontSize: 14, color: Colors.black87),
                 ),
-                if (isGuruView && isOwner)
-                  MenuAnchor(
-                    builder:
-                        (
-                          BuildContext context,
-                          MenuController controller,
-                          Widget? child,
-                        ) {
-                          return IconButton(
-                            visualDensity: VisualDensity.compact,
-                            padding: EdgeInsets.zero,
-                            icon: Icon(
-                              Icons.more_vert,
-                              color: theme.iconTheme.color,
-                            ),
-                            onPressed: () {
-                              if (controller.isOpen) {
-                                controller.close();
-                              } else {
-                                controller.open();
-                              }
-                            },
-                          );
-                        },
-                    menuChildren: <Widget>[
-                      MenuItemButton(
-                        leadingIcon: const Icon(Icons.edit_outlined),
-                        onPressed: onEdit,
-                        child: const Text('Ubah'),
-                      ),
-                      MenuItemButton(
-                        leadingIcon: Icon(
-                          Icons.delete_outline,
-                          color: theme.colorScheme.error,
-                        ),
-                        onPressed: onDelete,
-                        child: Text(
-                          'Hapus',
-                          style: TextStyle(color: theme.colorScheme.error),
+                // Tampilkan tombol "Baca selengkapnya" only if text is long
+                if (_isTextLong)
+                  InkWell(
+                    onTap: () {
+                      setState(() {
+                        _isExpanded = !_isExpanded;
+                      });
+                    },
+                    child: Padding(
+                      padding: const EdgeInsets.only(top: 4.0),
+                      child: Text(
+                        _isExpanded ? 'Tutup' : 'Baca selengkapnya...',
+                        style: const TextStyle(
+                          color: Colors.blue,
+                          fontWeight: FontWeight.bold,
                         ),
                       ),
-                    ],
+                    ),
                   ),
               ],
             ),
             const SizedBox(height: 12),
-            // Isi Pengumuman
-            Text(isi, style: theme.textTheme.bodyMedium),
-            const SizedBox(height: 16),
-            Divider(color: theme.dividerColor.withOpacity(0.5)),
-            const SizedBox(height: 8),
-            // Footer: Target Kelas dan Waktu
             Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
-                Expanded(
-                  child: Row(
+                Text(
+                  formattedDate,
+                  style: TextStyle(
+                    fontSize: 12,
+                    color: Colors.grey[600],
+                    fontStyle: FontStyle.italic,
+                  ),
+                ),
+                if (widget.isGuru)
+                  Row(
                     children: [
-                      Icon(
-                        Icons.school_outlined,
-                        size: 16,
-                        color: theme.colorScheme.primary,
+                      IconButton(
+                        icon: const Icon(Icons.edit, color: Colors.green),
+                        onPressed: widget.onEdit,
                       ),
-                      const SizedBox(width: 6),
-                      Expanded(
-                        child: Text(
-                          // ================== PERUBAHAN DI SINI ==================
-                          // Menampilkan string yang sudah digabung
-                          'Untuk: $targetKelas',
-                          // =======================================================
-                          style: theme.textTheme.bodySmall?.copyWith(
-                            color: theme.colorScheme.primary,
-                            fontWeight: FontWeight.w500,
-                          ),
-                          overflow: TextOverflow.ellipsis,
-                        ),
+                      IconButton(
+                        icon: const Icon(Icons.delete, color: Colors.red),
+                        onPressed: widget.onDelete,
                       ),
                     ],
                   ),
-                ),
-                const SizedBox(width: 16),
-                Text(
-                  tanggalFormatted,
-                  style: theme.textTheme.bodySmall?.copyWith(
-                    color: theme.textTheme.bodySmall?.color,
-                  ),
-                ),
               ],
             ),
           ],

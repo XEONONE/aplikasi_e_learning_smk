@@ -375,19 +375,12 @@ class _GuruHomeScreenState extends State<GuruHomeScreen> {
                         }
                         // ==========================================================
 
+                        // ================== PERBAIKAN UTAMA DI SINI ==================
+                        // Mengganti parameter lama dengan parameter 'announcement'
+                        // dan 'isGuru'
                         return AnnouncementCard(
-                          judul: data['judul'] ?? 'Tanpa Judul',
-                          isi: data['isi'] ?? 'Tidak ada isi.',
-                          dibuatPada: data['dibuatPada'] ?? Timestamp.now(),
-                          dibuatOlehUid: data['dibuatOlehUid'] ?? '',
-
-                          // ================== PENGIRIMAN DATA BARU ==================
-                          // Sekarang mengirim List<String> ke widget yang sudah
-                          // siap menerimanya (File 1).
-                          untukKelas: untukKelasList,
-
-                          // ==========================================================
-                          isGuruView: true,
+                          announcement: doc,
+                          isGuru: true,
                           onEdit: () {
                             Navigator.push(
                               context,
@@ -406,6 +399,7 @@ class _GuruHomeScreenState extends State<GuruHomeScreen> {
                             );
                           },
                         );
+                        // ================== AKHIR PERBAIKAN ==================
                       }).toList(),
                     );
                   },

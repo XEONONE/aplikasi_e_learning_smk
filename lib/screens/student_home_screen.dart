@@ -678,16 +678,10 @@ class _StudentHomeScreenState extends State<StudentHomeScreen> {
             }
             // ==========================================================
 
-            return AnnouncementCard(
-              judul: data['judul'] ?? 'Tanpa Judul',
-              isi: data['isi'] ?? 'Tidak ada isi.',
-              dibuatPada: timestamp,
-              dibuatOlehUid: data['dibuatOlehUid'] ?? '',
-              // ================== PENGIRIMAN DATA BARU ==================
-              // Kirim data yang sudah jadi List<String>
-              untukKelas: untukKelasList,
-              // ==========================================================
-            );
+            // ================== PERBAIKAN UTAMA DI SINI ==================
+            // Mengganti pemanggilan lama dengan parameter 'announcement'
+            return AnnouncementCard(announcement: doc);
+            // ================== AKHIR PERBAIKAN ==================
           },
         );
       },

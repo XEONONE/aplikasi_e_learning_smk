@@ -396,7 +396,7 @@ class _GuruDashboardScreenState extends State<GuruDashboardScreen> {
 
   @override
   Widget build(BuildContext context) {
-    final List<Widget> _pages = <Widget>[
+    final List<Widget> pages = <Widget>[
       GuruHomeScreen(key: _homeKey),
       Scaffold(
         appBar: AppBar(
@@ -458,7 +458,7 @@ class _GuruDashboardScreenState extends State<GuruDashboardScreen> {
 
     return Scaffold(
       body: SafeArea(
-        child: IndexedStack(index: _selectedIndex, children: _pages),
+        child: IndexedStack(index: _selectedIndex, children: pages),
       ),
       bottomNavigationBar: BottomNavigationBar(
         items: const <BottomNavigationBarItem>[

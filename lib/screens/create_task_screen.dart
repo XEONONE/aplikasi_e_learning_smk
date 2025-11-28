@@ -257,7 +257,7 @@ class _CreateTaskScreenState extends State<CreateTaskScreen> {
                   ),
                   const SizedBox(height: 16),
                   DropdownButtonFormField<String>(
-                    value: _selectedKelas, // Gunakan value, bukan initialValue
+                    initialValue: _selectedKelas, // Gunakan value, bukan initialValue
                     decoration: InputDecoration(
                       labelText: 'Untuk Kelas',
                       // === PERBAIKAN: Tambahkan OutlineInputBorder ===

@@ -9,12 +9,12 @@ class AnnouncementCard extends StatefulWidget {
   final bool isGuru;
 
   const AnnouncementCard({
-    Key? key,
+    super.key,
     required this.announcement,
     this.onEdit,
     this.onDelete,
     this.isGuru = false,
-  }) : super(key: key);
+  });
 
   @override
   _AnnouncementCardState createState() => _AnnouncementCardState();
@@ -38,7 +38,7 @@ class _AnnouncementCardState extends State<AnnouncementCard> {
     // Periksa apakah teks lebih panjang dari batas
     if (_fullText.length > _maxChars) {
       _isTextLong = true;
-      _shortText = _fullText.substring(0, _maxChars) + '...';
+      _shortText = '${_fullText.substring(0, _maxChars)}...';
     } else {
       _isTextLong = false;
     }

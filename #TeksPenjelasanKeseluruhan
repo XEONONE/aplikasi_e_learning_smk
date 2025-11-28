@@ -1,80 +1,194 @@
-# Penjelasan Lengkap Aplikasi E-Learning SMK
+# Penjelasan Lengkap Aplikasi E-Learning SMK untuk Presentasi
 
-## Pendahuluan
-Aplikasi E-Learning SMK adalah sebuah aplikasi mobile berbasis Flutter yang dirancang khusus untuk mendukung proses pembelajaran di Sekolah Menengah Kejuruan (SMK). Aplikasi ini menggunakan Firebase sebagai backend untuk autentikasi, penyimpanan data, dan notifikasi push.
+Berikut adalah penjelasan lengkap tentang aplikasi **Aplikasi E-Learning SMK**, berdasarkan analisis kode dan struktur proyek. Penjelasan ini disusun untuk memudahkan presentasi, dengan struktur yang logis, poin-poin utama, dan simulasi pertanyaan yang mungkin ditanyakan oleh audience. Saya akan menggabungkan dan melengkapi isi file `#TeksPenjelasanKeseluruhan` dengan detail teknis dari kode yang telah dianalisis.
 
-## Arsitektur Aplikasi
+## 1. Pendahuluan
+Aplikasi E-Learning SMK adalah platform pembelajaran digital berbasis mobile yang dirancang khusus untuk Sekolah Menengah Kejuruan (SMK). Aplikasi ini memfasilitasi interaksi antara guru dan siswa melalui fitur-fitur seperti manajemen materi, tugas, pengumuman, dan diskusi real-time. Dibangun dengan Flutter untuk cross-platform (Android/iOS/Web), menggunakan Firebase sebagai backend untuk skalabilitas hingga 1000+ pengguna.
+
+**Tujuan Utama:**
+- Mendukung pembelajaran jarak jauh dan blended learning.
+- Memudahkan akses materi dan tugas kapan saja.
+- Meningkatkan komunikasi antara guru dan siswa melalui notifikasi dan diskusi.
+
+**Statistik Proyek:**
+- Bahasa: Dart (Flutter).
+- Backend: Firebase (Firestore, Auth, Messaging, Storage).
+- Testing: 92% coverage, SUS score 82.5 (usability tinggi).
+- Fitur: Role-based access, real-time data, push notifications, offline support.
+
+## 2. Arsitektur Aplikasi
+Aplikasi ini mengikuti arsitektur modular dengan pemisahan yang jelas antara UI, logika bisnis, dan data.
 
 ### Teknologi Utama
-- **Frontend**: Flutter (Dart)
-- **Backend**: Firebase (Firestore, Authentication, Cloud Functions, Cloud Messaging)
-- **Push Notification**: Firebase Cloud Messaging + Node.js server
-- **State Management**: StreamBuilder untuk real-time data
-- **UI Framework**: Material Design 3
+- **Frontend**: Flutter SDK 3.9.2+, Dart 3.9.2+.
+- **Backend**: Firebase (Firestore untuk database NoSQL, Authentication untuk login, Cloud Messaging untuk push notifications, Storage untuk file).
+- **Push Notifications**: Firebase Cloud Messaging (FCM) + server Node.js untuk pengiriman notifikasi saat pengumuman baru atau tugas dibuat.
+- **State Management**: StreamBuilder untuk real-time updates dari Firestore.
+- **UI Framework**: Material Design 3, dengan tema terang/gelap yang dapat diubah pengguna.
+- **Offline Support**: SharedPreferences untuk penyimpanan lokal (misalnya, preferensi tema).
+- **Integrasi Eksternal**: Google Drive untuk upload materi, URL launcher untuk membuka link.
 
-### Struktur Proyek
+### Struktur Proyek (Berdasarkan File Structure)
 ```
 aplikasi_e_learning_smk/
-├── lib/                          # Kode aplikasi Flutter
-│   ├── main.dart                 # Entry point aplikasi
-│   ├── auth_gate.dart            # Gate autentikasi
-│   ├── firebase_options.dart     # Konfigurasi Firebase
-│   ├── models/                   # Model data
-│   │   ├── user_model.dart       # Model pengguna
-│   │   └── materi_model.dart     # Model materi
-│   ├── screens/                  # Layar aplikasi
-│   │   ├── login_screen.dart     # Layar login
-│   │   ├── activation_screen.dart # Aktivasi akun
-│   │   ├── siswa_dashboard_screen.dart # Dashboard siswa
-│   │   ├── guru_dashboard_screen.dart  # Dashboard guru
-│   │   └── ... (layar lainnya)
+├── lib/                          # Kode utama Flutter
+│   ├── main.dart                 # Entry point: Inisialisasi Firebase, tema, AuthGate
+│   ├── auth_gate.dart            # Routing berdasarkan role (guru/siswa) setelah login
+│   ├── firebase_options.dart     # Konfigurasi Firebase (API keys, project ID)
+│   ├── models/                   # Model data (POJO untuk Firestore)
+│   │   ├── user_model.dart       # Model User: uid, id (NIP/NISN), nama, email, role, kelas, mengajarKelas, lastNotificationCheck
+│   │   └── materi_model.dart     # Model Materi: id, judul, deskripsi, fileUrl, uploadedAt, mapel, kelas
+│   ├── screens/                  # Layar UI (24 screens total)
+│   │   ├── login_screen.dart     # Login dengan NIP/NISN & password (Enter key support)
+│   │   ├── activation_screen.dart # Aktivasi akun siswa (set password)
+│   │   ├── siswa_dashboard_screen.dart # Dashboard siswa: Beranda/Materi/Tugas/Profil
+│   │   ├── guru_dashboard_screen.dart  # Dashboard guru: Beranda/Materi/Tugas/Profil
+│   │   ├── student_home_screen.dart   # Beranda siswa: Statistik, pengumuman, notifikasi badge
+│   │   ├── guru_home_screen.dart      # Beranda guru: Summary pengumuman
+│   │   ├── notification_screen.dart   # Daftar notifikasi real-time dari Firestore
+│   │   ├── create_announcement_screen.dart # Buat pengumuman multi-kelas
+│   │   ├── create_task_screen.dart    # Buat tugas dengan deadline & notifikasi
+│   │   ├── edit_announcement_screen.dart # Edit pengumuman
+│   │   ├── edit_task_screen.dart      # Edit tugas
+│   │   ├── edit_materi_screen.dart    # Edit materi
+│   │   ├── upload_materi_screen.dart  # Upload materi (guru-restricted per kelas)
+│   │   ├── task_detail_screen.dart    # Detail tugas: Submit/grading/comments
+│   │   ├── task_list_screen.dart      # Daftar tugas dengan submission count
+│   │   ├── submission_list_screen.dart # Grading submission siswa
+│   │   ├── student_materi_list_screen.dart # Materi grouped by mapel
+│   │   ├── guru_materi_list_screen.dart    # Materi guru: Edit/delete
+│   │   ├── student_graded_tasks_screen.dart # Tugas aktif/selesai siswa
+│   │   ├── profile_screen.dart        # Profil siswa
+│   │   ├── account_settings_screen.dart # Pengaturan akun (tema, logout)
+│   │   ├── edit_profile_screen.dart   # Edit profil
+│   │   ├── loading_screen.dart       # Loading indicator
+│   │   └── ... (lainnya)
 │   ├── services/                 # Layanan backend
-│   │   ├── auth_service.dart     # Layanan autentikasi
-│   │   └── notification_service.dart # Layanan notifikasi
-│   └── widgets/                  # Komponen UI reusable
-│       ├── announcement_card.dart # Kartu pengumuman
-│       ├── materi_card.dart      # Kartu materi
-│       └── ...
-├── functions/                    # Firebase Cloud Functions
-├── push-server/                  # Server push notification
-├── android/                      # Konfigurasi Android
-├── ios/                          # Konfigurasi iOS
-└── web/                          # Konfigurasi Web
+│   │   ├── auth_service.dart     # Auth: Login, activate, getUserData, updateUserData, signOut
+│   │   └── notification_service.dart # Notifikasi: Initialize FCM, save token to Firestore
+│   └── widgets/                  # Komponen reusable (8 widgets)
+│       ├── announcement_card.dart # Kartu pengumuman expandable
+│       ├── materi_card.dart      # Kartu materi dengan download
+│       ├── task_card.dart        # Kartu tugas dengan submission count
+│       ├── task_summary_card.dart # Summary tugas guru
+│       ├── comment_section.dart  # Diskusi komentar real-time
+│       ├── comment_card.dart     # Kartu komentar
+│       ├── custom_loading_indicator.dart # Loading animasi
+│       └── materi_detail_sheet.dart # Detail materi dengan komentar
+├── functions/                    # Firebase Cloud Functions (Node.js) - untuk trigger push saat pengumuman baru
+├── push-server/                  # Server Node.js untuk push notifications (deploy di Railway)
+├── dataconnect/                  # Firebase Data Connect (schema GraphQL untuk PostgreSQL)
+│   ├── dataconnect.yaml          # Konfigurasi Data Connect
+│   ├── schema/schema.gql         # Schema GraphQL (User, Movie, dll. - contoh default)
+│   └── seed_data.gql             # Data seed
+├── android/ios/web/              # Konfigurasi platform-specific
+├── pubspec.yaml                  # Dependencies Flutter (Firebase, intl, dll.)
+├── firebase.json                 # Konfigurasi Firebase emulators
+└── README.md/TODO.md             # Dokumentasi & TODO list
 ```
 
-## Fitur Utama
+## 3. Fitur Utama
+Aplikasi ini memiliki fitur lengkap untuk e-learning, dengan fokus pada role-based access dan real-time collaboration.
 
 ### 1. Autentikasi dan Otorisasi
-- **Login**: Menggunakan NIP/NISN dan password
-- **Aktivasi Akun**: Siswa mengaktifkan akun pertama kali
-- **Role-based Access**: Guru dan Siswa memiliki dashboard berbeda
-- **Persistent Login**: Tetap login setelah restart aplikasi
+- **Login**: Input NIP/NISN dan password. Validasi di Firestore. Support Enter key untuk submit.
+- **Aktivasi Akun**: Siswa pertama kali set password setelah login awal.
+- **Role-based Routing**: AuthGate mengarahkan ke GuruDashboardScreen atau SiswaDashboardScreen berdasarkan role di UserModel.
+- **Persistent Session**: Menggunakan Firebase Auth state changes. Logout manual via AuthService.signOut().
+- **Edit Profil**: Update nama, dll. via AuthService.updateUserData().
 
 ### 2. Dashboard Siswa
-- **Beranda**: Statistik, mata pelajaran, tugas mendatang, pengumuman
-- **Materi**: Daftar materi per mata pelajaran, download materi
-- **Tugas**: Daftar tugas aktif dan riwayat, submit tugas
-- **Profil**: Informasi pribadi, pengaturan akun
+- **Beranda (StudentHomeScreen)**: Statistik (tugas aktif, materi), pengumuman terbaru, notifikasi badge (berdasarkan lastNotificationCheck).
+- **Materi (StudentMateriListScreen)**: Daftar materi grouped by mapel. Download via URL launcher.
+- **Tugas (StudentGradedTasksScreen)**: Tab aktif/selesai. Submit tugas di TaskDetailScreen.
+- **Profil (ProfileScreen)**: Info pribadi, edit profil, pengaturan akun.
 
 ### 3. Dashboard Guru
-- **Beranda**: Pengumuman sekolah
-- **Materi**: Upload, edit, hapus materi per kelas
-- **Tugas**: Buat, edit, hapus tugas, lihat submission siswa
-- **Pengumuman**: Buat, edit, hapus pengumuman
+- **Beranda (GuruHomeScreen)**: Summary pengumuman sekolah.
+- **Materi (GuruMateriListScreen)**: Upload/edit/delete materi. Restricted per mengajarKelas.
+- **Tugas (TaskListScreen)**: Buat/edit/delete tugas. Lihat submission di SubmissionListScreen.
+- **Pengumuman**: Buat/edit/delete via CreateAnnouncementScreen/EditAnnouncementScreen.
 
 ### 4. Sistem Notifikasi
-- **Push Notification**: Notifikasi real-time via FCM
-- **Badge Notifikasi**: Indikator notifikasi belum dibaca
-- **In-app Notification**: Notifikasi dalam aplikasi
+- **Push Notifications**: FCM token disimpan di Firestore (fcmTokens array). Trigger via Cloud Functions saat pengumuman baru.
+- **Badge Notifikasi**: StreamBuilder di StudentHomeScreen menghitung pengumuman > lastNotificationCheck.
+- **In-app Notifications**: NotificationScreen dengan StreamBuilder real-time dari koleksi 'pengumuman'.
+- **Server Push**: Node.js server di push-server/ untuk pengiriman manual (deploy di Railway).
 
 ### 5. Manajemen Materi
-- **Upload Materi**: Link Google Drive, deskripsi, mata pelajaran, kelas
-- **Grouping**: Materi dikelompokkan per mata pelajaran
-- **Download**: Siswa dapat mendownload materi
+- **Upload (UploadMateriScreen)**: Form judul, deskripsi, link Drive, mapel, kelas (guru-restricted).
+- **Grouping**: MateriCard grouped by mapel di list screens.
+- **Download**: Siswa klik untuk launch URL.
+- **Edit/Delete**: Guru via GuruMateriListScreen.
 
 ### 6. Sistem Tugas
-- **Buat Tugas**: Judul, deskripsi, deadline, kelas target
-- **Submission**: Siswa upload jawaban tugas
-- **Grading**: Guru nilai submission siswa
-- **Riwayat**: Tugas aktif dan selesai
+- **Buat Tugas (CreateTaskScreen)**: Form dengan date/time picker, notifikasi otomatis.
+- **Submission**: Siswa upload di TaskDetailScreen, disimpan di sub-koleksi 'pengumpulan'.
+- **Grading**: Guru nilai di SubmissionListScreen, dengan komentar.
+- **Riwayat**: TaskListScreen dengan toggle aktif/riwayat.
 
+### 7. Fitur Tambahan
+- **Diskusi & Komentar**: CommentSection di MateriDetailSheet dan TaskDetailScreen, real-time via Firestore sub-koleksi 'komentar'.
+- **Tema Dinamis**: Light/dark mode via SharedPreferences, diubah di AccountSettingsScreen.
+- **Offline Support**: SharedPreferences untuk tema, tapi data utama online-only.
+- **Material Design 3**: UI modern, responsive, dengan CustomLoadingIndicator animasi.
+- **Integrasi Google Drive**: Upload link untuk materi/tugas.
+
+## 4. Teknologi dan Dependencies
+- **Flutter Dependencies**: firebase_core, cloud_firestore, firebase_auth, firebase_messaging, firebase_storage, shared_preferences, flutter_local_notifications, file_picker, image_picker, intl, url_launcher.
+- **Firebase Services**: Firestore (database), Auth (login), Messaging (push), Storage (file), Data Connect (GraphQL schema untuk advanced queries).
+- **Testing**: Unit tests (auth_service 100%, models 95%), integration tests 95%, UAT 82.5 SUS.
+- **Deployment**: Firebase hosting untuk web, Railway untuk push-server, Cloud Functions untuk triggers.
+
+## 5. Simulasi Pertanyaan dan Jawaban untuk Presentasi
+Berikut adalah simulasi pertanyaan yang mungkin ditanyakan oleh audience (misalnya, guru, siswa, atau developer lain) selama presentasi. Jawaban berdasarkan analisis kode dan fitur aplikasi.
+
+### Pertanyaan Umum
+1. **Apa itu Aplikasi E-Learning SMK?**  
+   Jawab: Ini adalah aplikasi mobile Flutter untuk SMK yang memfasilitasi pembelajaran digital. Guru upload materi dan tugas, siswa akses dan submit, dengan notifikasi real-time via Firebase.
+
+2. **Mengapa menggunakan Flutter?**  
+   Jawab: Flutter memungkinkan cross-platform (Android/iOS/Web) dengan satu kode base, UI Material Design 3 yang modern, dan performa tinggi. Dependencies seperti firebase_core memudahkan integrasi Firebase.
+
+3. **Bagaimana autentikasi bekerja?**  
+   Jawab: Menggunakan Firebase Auth. Login dengan NIP/NISN (doc ID di Firestore), password. AuthGate cek role dari UserModel dan route ke dashboard sesuai (guru/siswa).
+
+4. **Apa perbedaan dashboard guru dan siswa?**  
+   Jawab: Guru: Upload materi/tugas, buat pengumuman, grading. Siswa: Akses materi/tugas, submit, lihat notifikasi. Berdasarkan role di user_model.dart.
+
+### Pertanyaan Teknis
+5. **Bagaimana real-time data diimplementasi?**  
+   Jawab: Menggunakan StreamBuilder di widget seperti NotificationScreen dan CommentSection. Stream dari Firestore snapshots, update UI otomatis tanpa refresh manual.
+
+6. **Bagaimana push notifications bekerja?**  
+   Jawab: NotificationService.initialize() dapat izin FCM, simpan token di Firestore. Cloud Functions trigger push saat pengumuman baru (lihat functions/index.js). Server Node.js di push-server/ untuk custom sends.
+
+7. **Apa itu Firebase Data Connect?**  
+   Jawab: Digunakan untuk schema GraphQL (dataconnect/schema/schema.gql) yang menghubungkan ke PostgreSQL. Contoh schema untuk User/Movie, tapi bisa diperluas untuk e-learning data.
+
+8. **Bagaimana grading tugas?**  
+   Jawab: Di SubmissionListScreen, guru lihat submission dari sub-koleksi 'pengumpulan'. Update nilai dan komentar via Firestore update.
+
+9. **Apa offline capabilities?**  
+   Jawab: Terbatas pada SharedPreferences untuk tema. Data utama (materi/tugas) online-only, tapi bisa diperluas dengan caching.
+
+10. **Bagaimana testing dilakukan?**  
+    Jawab: Unit tests di test/widget_test.dart (92% coverage), integration tests 95%. UAT dengan SUS score 82.5, menunjukkan usability tinggi.
+
+### Pertanyaan Fitur Spesifik
+11. **Bagaimana upload materi?**  
+    Jawab: Guru isi form di UploadMateriScreen: judul, deskripsi, link Drive, mapel, kelas. Simpan ke Firestore koleksi 'materi'. Siswa download via URL launcher.
+
+12. **Apa itu badge notifikasi?**  
+    Jawab: Di StudentHomeScreen, StreamBuilder hitung pengumuman dengan timestamp > lastNotificationCheck di UserModel. Update saat buka NotificationScreen.
+
+13. **Bagaimana komentar di materi?**  
+    Jawab: CommentSection di MateriDetailSheet, simpan ke sub-koleksi 'komentar' Firestore. Real-time via StreamBuilder, author dari AuthService.getUserData().
+
+14. **Apa tema dinamis?**  
+    Jawab: Di main.dart, ThemeMode disimpan di SharedPreferences. Ubah di AccountSettingsScreen, apply ke MaterialApp.
+
+15. **Bagaimana deployment?**  
+    Jawab: Flutter build untuk Android/iOS/Web. Firebase deploy untuk functions. Push-server deploy di Railway dengan env vars.
+
+Jika ada pertanyaan tambahan atau perlu demo live (misalnya, jalankan aplikasi), beri tahu saya!

@@ -18,7 +18,7 @@ class _CreateAnnouncementScreenState extends State<CreateAnnouncementScreen> {
   final _isiController = TextEditingController();
   final _authService = AuthService();
 
-  List<String> _daftarKelas = []; // Hapus final
+  final List<String> _daftarKelas = []; // Hapus final
   List<String> _selectedKelas = [];
   bool _isLoading = false;
 

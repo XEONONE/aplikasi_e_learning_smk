@@ -57,7 +57,7 @@ class _StudentHomeScreenState extends State<StudentHomeScreen> {
   Future<void> _fetchUserKelas() async {
     if (_userKelas != null) return; // Sudah didapat dari _fetchStudentData
     if (_currentUser != null) {
-      final userData = await _authService.getUserData(_currentUser!.uid);
+      final userData = await _authService.getUserData(_currentUser.uid);
       if (mounted) {
         setState(() {
           _userKelas = userData?.kelas;
@@ -93,7 +93,7 @@ class _StudentHomeScreenState extends State<StudentHomeScreen> {
           .where(
             'targetAudience',
             arrayContainsAny: [
-              _currentUser!.uid,
+              _currentUser.uid,
               'kelas_${_userKelas!}',
               'all_users',
             ],

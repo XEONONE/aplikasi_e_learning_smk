@@ -1,0 +1,78 @@
+# Laporan PKL: Pengembangan Aplikasi E-Learning SMK
+
+## Pendahuluan
+
+Selama masa Praktik Kerja Lapangan (PKL), saya telah terlibat dalam pengembangan aplikasi e-learning untuk SMK yang diberi nama "aplikasi_e_learning_smk". Aplikasi ini dibangun menggunakan framework Flutter dengan integrasi Firebase untuk autentikasi, penyimpanan data, dan notifikasi. Aplikasi ini dirancang untuk memfasilitasi proses pembelajaran antara guru dan siswa, dengan fitur-fitur seperti pengelolaan materi, tugas, pengumuman, dan profil pengguna.
+
+## Tujuan Pengembangan
+
+Tujuan utama dari pengembangan aplikasi ini adalah:
+1. Membuat platform e-learning yang mudah digunakan untuk siswa dan guru SMK.
+2. Mengintegrasikan fitur-fitur modern seperti autentikasi aman, penyimpanan cloud, dan notifikasi real-time.
+3. Meningkatkan efisiensi proses pembelajaran dengan fitur-fitur seperti pengumpulan tugas, pengumuman, dan materi digital.
+4. Mengimplementasikan analisis otomatis untuk meningkatkan pengalaman pengguna, terinspirasi dari tools seperti MonkeyLearn.
+
+## Analisis Program
+
+### Struktur Aplikasi
+Aplikasi ini memiliki struktur sebagai berikut:
+- **Frontend**: Dibangun dengan Flutter, menggunakan Material Design 3 untuk UI yang konsisten.
+- **Backend**: Menggunakan Firebase (Firestore, Auth, Storage, Messaging).
+- **Arsitektur**: Menggunakan pola MVVM dengan pemisahan layanan (services), model, dan widget.
+- **Fitur Utama**:
+  - Autentikasi: Login, aktivasi akun, logout.
+  - Dashboard: Berbeda untuk guru dan siswa.
+  - Materi: Upload, edit, dan akses materi pembelajaran.
+  - Tugas: Pembuatan, pengumpulan, dan penilaian tugas.
+  - Pengumuman: Pembuatan dan penayangan pengumuman.
+  - Profil: Edit profil dan pengaturan akun.
+
+### Teknologi yang Digunakan
+- **Flutter**: Framework untuk pengembangan aplikasi mobile cross-platform.
+- **Firebase**: Platform backend-as-a-service untuk autentikasi, database, storage, dan messaging.
+- **Dart**: Bahasa pemrograman utama.
+- **Shared Preferences**: Untuk penyimpanan lokal tema aplikasi.
+
+## Pengembangan dan Peningkatan
+
+### Fitur yang Telah Dikerjakan
+1. **Autentikasi dan Otorisasi**: Sistem login berdasarkan NIP/NISN dan password, dengan pemisahan role guru dan siswa.
+2. **Dashboard Dinamis**: Tampilan berbeda untuk guru dan siswa, dengan navigasi bottom navigation bar.
+3. **Penggunaan Tema**: Implementasi tema terang dan gelap dengan penyimpanan preferensi.
+4. **Materi dan Tugas**: CRUD operations untuk materi dan tugas, dengan upload file ke Firebase Storage.
+5. **Pengumuman**: Sistem pengumuman dengan target kelas tertentu.
+6. **Notifikasi**: Integrasi Firebase Messaging untuk notifikasi push.
+
+### Inspirasi dari MonkeyLearn
+MonkeyLearn adalah platform analisis teks berbasis AI yang dapat melakukan klasifikasi teks, ekstraksi entitas, dan analisis sentimen. Dalam konteks aplikasi e-learning ini, saya mengimplementasikan fitur analisis otomatis untuk:
+- **Analisis Sentimen pada Feedback Siswa**: Menggunakan algoritma sederhana untuk menganalisis komentar atau feedback siswa terhadap materi dan tugas.
+- **Klasifikasi Materi**: Otomatis mengkategorikan materi berdasarkan konten teks.
+- **Deteksi Plagiarisme**: Analisis kesamaan antara tugas siswa menggunakan algoritma hashing dan perbandingan teks.
+
+Implementasi ini dilakukan dengan membuat service analisis teks sederhana yang dapat diperluas dengan integrasi API eksternal seperti MonkeyLearn di masa depan.
+
+### Tantangan dan Solusi
+1. **Manajemen State**: Menggunakan Provider untuk state management yang efisien.
+2. **Optimasi Performa**: Implementasi lazy loading dan caching untuk data Firestore.
+3. **Keamanan**: Validasi input dan penggunaan Firebase Security Rules.
+4. **UI/UX**: Desain responsif dengan pertimbangan aksesibilitas.
+
+## Kesimpulan
+
+Pengembangan aplikasi "aplikasi_e_learning_smk" telah berhasil mencapai tujuan utama sebagai platform e-learning yang fungsional. Dengan inspirasi dari tools seperti MonkeyLearn, aplikasi ini tidak hanya menyediakan fitur dasar e-learning tetapi juga mulai mengintegrasikan analisis otomatis untuk meningkatkan kualitas pembelajaran.
+
+### Rekomendasi untuk Pengembangan Lanjutan
+1. Integrasi AI lebih lanjut dengan MonkeyLearn API untuk analisis sentimen real-time.
+2. Penambahan fitur video conference menggunakan WebRTC.
+3. Implementasi gamifikasi untuk meningkatkan motivasi siswa.
+4. Pengembangan versi web menggunakan Flutter Web.
+
+Dengan demikian, aplikasi ini siap untuk digunakan dan dikembangkan lebih lanjut sesuai kebutuhan SMK.
+
+---
+
+**Nama**: [Nama Lengkap]  
+**NIS/NIP**: [NIS/NIP]  
+**SMK**: [Nama SMK]  
+**Tanggal**: [Tanggal]  
+**Pembimbing**: [Nama Pembimbing]

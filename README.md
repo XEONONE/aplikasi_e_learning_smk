@@ -93,4 +93,4 @@ Dikembangkan sebagai proyek Praktik Kerja Lapangan (PKL) — Program Studi Infor
 
 ## 📄 Lisensi
 
-Proyek ini dibuat untuk keperluan akademik (tugas PKL) dan bersifat privat/non-komersial kecuali dinyatakan lain oleh pemilik repo.
+Proyek ini dibuat untuk keperluan akademik (tugas PKL) dan bersifat privat/non-komersial kecuali dinyatakan lain oleh pemilik libary.
